@@ -1,11 +1,11 @@
 ﻿using UnityEngine;
 using System.Collections.Generic;
 
-public class Triangulator
+public class TriangulatorSimple
 {
     private List<Vector2> m_points = new List<Vector2>();
 
-    public Triangulator(Vector2[] points)
+    public TriangulatorSimple(Vector2[] points)
     {
         m_points = new List<Vector2>(points);
     }
@@ -56,6 +56,11 @@ public class Triangulator
                 indices.Add(a);
                 indices.Add(b);
                 indices.Add(c);
+
+                indices.Add(b);
+                indices.Add(a);
+                indices.Add(c);
+
                 m++;
                 for (s = v, t = v + 1; t < nv; s++, t++)
                     V[s] = V[t];
@@ -64,7 +69,11 @@ public class Triangulator
             }
         }
 
-        indices.Reverse();
+        var reverse = new List<int>(indices);
+        //reverse.Reverse();
+        indices.AddRange(reverse);
+
+
         return indices.ToArray();
     }
 

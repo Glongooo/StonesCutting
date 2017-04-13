@@ -1,10 +1,12 @@
-﻿using System.Collections;
+﻿using DelaunayTriangulator;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using Triangulator = DelaunayTriangulator.Triangulator;
 
 public class MeshSlicer
 {
-    public static Mesh[] SliceMeshByPlane(Mesh mesh, Plane plane, out Mesh hat)
+    public static Mesh[] SliceMeshByPlane(Mesh mesh, Vector3 one, Vector3 two, Vector3 three, out Mesh hat)
     {
         Mesh[] result = new Mesh[2];
 
@@ -21,6 +23,7 @@ public class MeshSlicer
         #endregion
 
         #region Determine Vertex/Side relations
+        var plane = new Plane(one, two, three);
         int p = 0;
         int n = 0;
         for (int i = 0; i < vertices.Length; i++)
@@ -180,37 +183,7 @@ public class MeshSlicer
 
         }
         #endregion
-
-        //var hatVerts = new List<Vector3>();
-        //var hatCenterPoint = Vector3.zero;
-        //for (int i = 0; i < NegativeHatIndices.Count; i++)
-        //{
-        //    hatCenterPoint += negativeVertices[NegativeHatIndices[i]];
-        //    hatVerts.Add(negativeVertices[NegativeHatIndices[i]]);
-        //}
-        //hatCenterPoint /= hatVerts.Count;
-        //(new ClockwiseSort()).SortClockwise(hatVerts);
-        //positiveVertices.Add(hatCenterPoint);
-        //negativeVertices.Add(hatCenterPoint);
-        //for(int i = 0; i < hatVerts.Count-1; i++)
-        //{
-        //    PositiveSideTriangles.Add(positiveVertices.Count - 1);
-        //    PositiveSideTriangles.Add(PositiveHatIndices[i]);
-        //    PositiveSideTriangles.Add(PositiveHatIndices[i+1]);
-
-        //    NegativeSideTriangles.Add(negativeVertices.Count - 1);
-        //    NegativeSideTriangles.Add(NegativeHatIndices[i]);
-        //    NegativeSideTriangles.Add(NegativeHatIndices[i+1]);
-        //}
-
-        //PositiveSideTriangles.Add(positiveVertices.Count - 1);
-        //PositiveSideTriangles.Add(PositiveHatIndices[hatVerts.Count - 1]);
-        //PositiveSideTriangles.Add(PositiveHatIndices[0]);
-
-        //NegativeSideTriangles.Add(negativeVertices.Count - 1);
-        //NegativeSideTriangles.Add(NegativeHatIndices[hatVerts.Count - 1]);
-        //NegativeSideTriangles.Add(NegativeHatIndices[0]);
-
+        
         #region Initializing result meshes
         Mesh positiveMesh = new Mesh();
         positiveMesh.SetVertices(positiveVertices);
@@ -232,9 +205,10 @@ public class MeshSlicer
             hatVerts.Add(negativeVertices[NegativeHatIndices[i]]);
         }
         hatCenterPoint /= hatVerts.Count;
-        (new ClockwiseSort()).SortClockwise(hatVerts);
+        //(new ClockwiseSort()).SortClockwise(hatVerts);
 
-        var planeList = ToPlane2d(hatVerts);
+        var planeList = ToPlane2d(hatVerts, one, two, three);
+        
 
         hatVerts.Add(hatCenterPoint);
 
@@ -289,8 +263,7 @@ public class MeshSlicer
         for (int i = 1; i < n; i++)
         {
             Mesh hat;
-            var tmpPlane = new Plane(points[0] + dir * i * delta, points[1] + dir * i * delta, points[2] + dir * i * delta);
-            curres = SliceMeshByPlane(tmpmesh, tmpPlane, out hat);
+            curres = SliceMeshByPlane(tmpmesh, points[0] + dir * i * delta, points[1] + dir * i * delta, points[2] + dir * i * delta, out hat);
             result[i - 1] = curres[0];
             tmpmesh = curres[1];
             hats.Add(hat);
@@ -301,18 +274,18 @@ public class MeshSlicer
 
     }
 
-    private static List<Vector2> ToPlane2d(List<Vector3> vertices)
+    private static List<Vector2> ToPlane2d(List<Vector3> vertices, Vector3 one, Vector3 two, Vector3 three)
     {
         List<Vector2> result = new List<Vector2>();
-        var plane = new Plane(vertices[0], vertices[2], vertices[vertices.Count - 1]);
+        var plane = new Plane(one, two, three);
         var norm = plane.normal;
-        var tan1 = vertices[2] - vertices[0];
-        var tan2 = Vector3.Cross(norm, tan1);
-        Vector3.OrthoNormalize(ref norm, ref tan1, ref tan2);
+        var tan1 = two - one;
+        var tan2 = two - three;
+        Vector3.OrthoNormalize( ref tan1, ref tan2, ref norm);
         Matrix4x4 toNewSpace = new Matrix4x4();
-        toNewSpace.SetRow(0, norm);
-        toNewSpace.SetRow(1, tan1);
-        toNewSpace.SetRow(2, tan2);
+        toNewSpace.SetRow(0, tan1);
+        toNewSpace.SetRow(1, tan2);
+        toNewSpace.SetRow(2, norm);
         toNewSpace[3, 3] = 1.0F;
         Matrix4x4 scale = new Matrix4x4();
         scale[0, 0] = 1;
@@ -325,6 +298,41 @@ public class MeshSlicer
             var nv = toNewSpace.MultiplyPoint3x4(i);
             result.Add(new Vector2(nv.x, nv.y));
         }
+        return result;
+
+    }
+
+    private static List<Vector3> SortIn2DPlane(List<Vector3> vertices, Vector3 one, Vector3 two, Vector3 three)
+    {
+        List<Vector3> result = new List<Vector3>();
+        var plane = new Plane(one, two, three);
+        var norm = plane.normal;
+        var tan1 = two - one;
+        var tan2 = two - three;
+        Vector3.OrthoNormalize(ref tan1, ref tan2, ref norm);
+        Matrix4x4 toNewSpace = new Matrix4x4();
+        toNewSpace.SetRow(0, tan1);
+        toNewSpace.SetRow(1, tan2);
+        toNewSpace.SetRow(2, norm);
+        toNewSpace[3, 3] = 1.0F;
+        Matrix4x4 scale = new Matrix4x4();
+        scale[0, 0] = 1;
+        scale[1, 1] = 1.0F;
+        scale[2, 2] = 1.0F;
+        scale[3, 3] = 1.0F;
+        Matrix4x4 fromNewSpace = toNewSpace.transpose;
+        Matrix4x4 trans = toNewSpace * scale * fromNewSpace;
+        foreach (var i in vertices)
+        {
+            var nv = toNewSpace.MultiplyPoint3x4(i);
+            result.Add(nv);
+        }
+
+        (new ClockwiseSort()).SortClockwise(result);
+        List<Vector3> backRes = new List<Vector3>();
+        foreach (var i in result)
+            backRes.Add(fromNewSpace.MultiplyPoint3x4(i));
+
         return result;
 
     }

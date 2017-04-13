@@ -10,7 +10,7 @@ public class ClockwiseSort{
         Vector3 centerPoint = Vector3.zero;
         foreach (var i in list)
             centerPoint += i;
-        //centerPoint /= list.Count;
+        centerPoint /= list.Count;
         list.Sort(ClocwiseComparer);
     }
     private int ClocwiseComparer(Vector3 a, Vector3 b)
