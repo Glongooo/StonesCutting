@@ -323,13 +323,15 @@ public class LayerBank : MonoBehaviour
 
     public void DropMesh()
     {
-        state = LayerBankState.empty;
-        //layers.Clear();
-        //layersHeight.Clear();
-        for (int i = 0; i < dragSpheresParent.childCount; i++)
-            Destroy(dragSpheresParent.GetChild(i).gameObject);
-        ToggleMainMeshComponents(false);
-        ToggleSliceMeshComponent(false);
+       // Application.LoadLevel(0);
+        UnityEngine.SceneManagement.SceneManager.LoadScene(0);
+        //state = LayerBankState.empty;
+        ////layers.Clear();
+        ////layersHeight.Clear();
+        //for (int i = 0; i < dragSpheresParent.childCount; i++)
+        //    Destroy(dragSpheresParent.GetChild(i).gameObject);
+        //ToggleMainMeshComponents(false);
+        //ToggleSliceMeshComponent(false);
     }
 
     public void SetCenterWiredView()
