@@ -1,8 +1,6 @@
-﻿using DelaunayTriangulator;
-using System.Collections;
+﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-using Triangulator = DelaunayTriangulator.Triangulator;
 
 public class MeshSlicer
 {
