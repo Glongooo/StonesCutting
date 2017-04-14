@@ -8,7 +8,8 @@ public enum LayerBankState
 {
     empty,
     drawMainMesh,
-    drawSlices
+    drawSlices,
+    allSlices
 }
 
 public class LayerBank : MonoBehaviour
@@ -43,6 +44,8 @@ public class LayerBank : MonoBehaviour
     private List<Mesh> hats;
     private int curSliceNum = 0;
     private bool isWired = false;
+    private List<GameObject> slicesAll;
+    private Vector3 lastSliceVector;
 
     public void AddNewLayer(List<Vector3> obj, float height)
     {
@@ -323,15 +326,74 @@ public class LayerBank : MonoBehaviour
 
     public void DropMesh()
     {
-       // Application.LoadLevel(0);
         UnityEngine.SceneManagement.SceneManager.LoadScene(0);
-        //state = LayerBankState.empty;
-        ////layers.Clear();
-        ////layersHeight.Clear();
-        //for (int i = 0; i < dragSpheresParent.childCount; i++)
-        //    Destroy(dragSpheresParent.GetChild(i).gameObject);
-        //ToggleMainMeshComponents(false);
-        //ToggleSliceMeshComponent(false);
+    }
+
+    public void ShowAllSlices()
+    {
+        if (state == LayerBankState.allSlices)
+        {
+            foreach (var i in slicesAll)
+                Destroy(i);
+            slicesAll = new List<GameObject>();
+            state = LayerBankState.drawSlices;
+            SetSlice(0);
+            ToggleSliceMeshComponent(true);
+            return;
+        }
+        List<Mesh> meshes = new List<Mesh>();
+        slicesAll = new List<GameObject>();
+        if (state == LayerBankState.drawSlices)
+        {
+            state = LayerBankState.allSlices;
+            for (int i = 0; i < slices.Length; i++)
+            {
+                var verts = new List<Vector3>(slices[i].vertices);
+                var triangles = new List<int>(slices[i].triangles).ToArray();
+                for (int j = 0; j < verts.Count; j++)
+                {
+                    verts[j] += lastSliceVector * 15.0f * i;
+                }
+                var mesh = new Mesh();
+                mesh.SetVertices(verts);
+                mesh.SetTriangles(triangles, 0);
+                var newCenter = Instantiate(sliceMeshFilter.gameObject, sliceMeshFilter.transform.parent).GetComponent<MeshFilter>();
+                newCenter.gameObject.SetActive(true);
+                newCenter.mesh = mesh;
+                slicesAll.Add(newCenter.gameObject);
+                if (i > 0)
+                {
+                    var newDown = Instantiate(sliceDownBound, sliceDownBound.transform.parent).GetComponent<MeshFilter>();
+                    newDown.gameObject.SetActive(true);
+                    Mesh downmesh = new Mesh();
+                    var downVerts = new List<Vector3>(hats[i].vertices);
+                    for (int j = 0; j < downVerts.Count; j++)
+                    {
+                        downVerts[j] += lastSliceVector * 15.0f * i;
+                    }
+                    newDown.mesh.SetVertices(downVerts);
+                    newDown.mesh.SetTriangles(hats[i].triangles, 0);
+                    slicesAll.Add(newDown.gameObject);
+                }
+
+                if (i < slices.Length-1)
+                {
+                    var newDown = Instantiate(sliceUpperBound, sliceUpperBound.transform.parent).GetComponent<MeshFilter>();
+                    newDown.gameObject.SetActive(true);
+                    Mesh downmesh = new Mesh();
+                    var downVerts = new List<Vector3>(hats[i + 1].vertices);
+                    for (int j = 0; j < downVerts.Count; j++)
+                    {
+                        downVerts[j] += lastSliceVector * 15.0f * i;
+                    }
+                    newDown.mesh.SetVertices(downVerts);
+                    newDown.mesh.SetTriangles(hats[i + 1].triangles, 0);
+                    slicesAll.Add(newDown.gameObject);
+                }
+            }
+
+            ToggleSliceMeshComponent(false);
+        }
     }
 
     public void SetCenterWiredView()
@@ -429,8 +491,8 @@ public class LayerBank : MonoBehaviour
                 size = Mathf.Max(size, plane.GetDistanceToPoint(i));
             }
 
-
             slices = MeshSlicer.SliceInPeaces(slicesNum, meshFilter.mesh, size, points, out hats);
+            lastSliceVector = plane.normal.normalized;
             hats.Add(upperBound.mesh);
             hats.Insert(0, downBound.mesh);
             SetSlice(0);
