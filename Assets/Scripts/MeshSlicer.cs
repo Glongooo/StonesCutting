@@ -207,8 +207,11 @@ public class MeshSlicer
         hatCenterPoint /= hatVerts.Count;
         //(new ClockwiseSort()).SortClockwise(hatVerts);
 
-        var planeList = ToPlane2d(hatVerts, one, two, three);
-        
+        //var planeList = ToPlane2d(hatVerts, one, two, three);
+
+        var sorted = SortIn2DPlane(hatVerts, one, two, three);
+        hatVerts = sorted;
+
 
         hatVerts.Add(hatCenterPoint);
 
@@ -309,7 +312,7 @@ public class MeshSlicer
         var norm = plane.normal;
         var tan1 = two - one;
         var tan2 = two - three;
-        Vector3.OrthoNormalize(ref tan1, ref tan2, ref norm);
+        Vector3.OrthoNormalize( ref tan1, ref tan2,ref norm);
         Matrix4x4 toNewSpace = new Matrix4x4();
         toNewSpace.SetRow(0, tan1);
         toNewSpace.SetRow(1, tan2);
@@ -321,7 +324,6 @@ public class MeshSlicer
         scale[2, 2] = 1.0F;
         scale[3, 3] = 1.0F;
         Matrix4x4 fromNewSpace = toNewSpace.transpose;
-        Matrix4x4 trans = toNewSpace * scale * fromNewSpace;
         foreach (var i in vertices)
         {
             var nv = toNewSpace.MultiplyPoint3x4(i);
@@ -333,7 +335,7 @@ public class MeshSlicer
         foreach (var i in result)
             backRes.Add(fromNewSpace.MultiplyPoint3x4(i));
 
-        return result;
+        return backRes;
 
     }
 }
