@@ -31,6 +31,16 @@ public class Blank {
         this.v1 = v1;
         this.v2 = v1 + new Vector3(0, b);
         this.v3 = v1 + new Vector3(a, b);
-        this.v4 = v1 + new Vector3(0, b);
+        this.v4 = v1 + new Vector3(a, 0);
+    }
+
+    public override string ToString()
+    {
+        Vector2 vv1 = new Vector2(v1.x, v1.y);
+        Vector2 vv2 = new Vector2(v2.x, v2.y);
+        Vector2 vv3 = new Vector2(v3.x, v3.y);
+        Vector2 vv4 = new Vector2(v4.x, v4.y);
+        return vv1.ToString() + " " + vv2.ToString() + " "
+            + vv3.ToString() + " " + vv4.ToString();
     }
 }

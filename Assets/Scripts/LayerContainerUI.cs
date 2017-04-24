@@ -92,6 +92,24 @@ public class LayerContainerUI : MonoBehaviour
             txt.text = "(" + coords.x + "; " + coords.y + ")";
             txt.gameObject.SetActive(showCoords.isOn);
         }
+
+        List<Vector3> list = new List<Vector3>();
+        list.Add(new Vector3(0, 3));
+        list.Add(new Vector3(3, 3));
+        list.Add(new Vector3(3, 0));
+        list.Add(new Vector3(0, 0));
+        CutManager cut = new CutManager(list);
+        cut.ChooseBaseAndRotate();
+        List<Blank> bls = new List<Blank>();
+        int price;
+        cut.CutStripe(2,1,out bls, out price);
+        foreach (var b in bls)
+        {
+            Debug.Log(b.ToString());
+        }
+        Debug.Log(cut.MakeCutting());
+
+
     }
 
     //private void InsertGORoundSortedList(List<GameObject> list, GameObject go)
