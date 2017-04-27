@@ -45,6 +45,9 @@ public class CutManager {
         {
             List<Blank> b1 = new List<Blank>();
             List<Blank> b2 = new List<Blank>();
+            if (!bestBlanks.ContainsKey(x))
+                bestBlanks.Add(x, new List<Blank>());
+
             int p1 = 0, p2 = 0;
 
             if (x >= a)
@@ -61,9 +64,17 @@ public class CutManager {
             int maxP = Math.Max(p1, p2);
 
             if (p1 > p2)
-                bestBlanks[x] = b1;
+            {
+                if (bestBlanks.ContainsKey(x - a))
+                    bestBlanks[x].AddRange(bestBlanks[x - a]);            
+                bestBlanks[x].AddRange(b1);
+            }
             else
-                bestBlanks[x] = b2;
+            {
+                if (bestBlanks.ContainsKey(x - b))
+                    bestBlanks[x].AddRange(bestBlanks[x - b]);
+                bestBlanks[x].AddRange(b2);
+            }
 
             fun[x] = maxP;
             lastMax = x;
@@ -127,22 +138,20 @@ public class CutManager {
         Debug.Log("base vector: " + initVectors[maxDistNum]);
 
         // Пока что считаем, что изначально фигура лежит в 1 координатной четверти
-        int mul = 1;
         Debug.Log("center: " + center);
-        if (center.y > initVectors[maxDistNum].y)
-            mul = -1;
+        float angle = Vector3.Angle(initVectors[maxDistNum], new Vector3(0, 1));
 
-        float angle = mul * Vector3.Angle(initVectors[maxDistNum], new Vector3(0, 1));
+        if (initVectors[maxDistNum].x < 0)
+            angle = -angle;
+
+        //if (center.y < initPoly[maxDistNum].y)
+        //    angle = -angle;
+
         Debug.Log("rotation angle: " + angle);
 
         Quaternion rotation = Quaternion.Euler(0, 0, angle);
         Matrix4x4 m = Matrix4x4.identity;
         m.SetTRS(new Vector3(0, 0, 0), rotation, new Vector3(1, 1, 1));
-        Debug.Log("mult: " + m.MultiplyPoint3x4(new Vector3(0, 0)));
-        Debug.Log("mult: " + m.MultiplyPoint3x4(new Vector3(0, 1)));
-        Debug.Log("mult: " + m.MultiplyPoint3x4(new Vector3(1, 0)));
-        Debug.Log("mult: " + m.MultiplyPoint3x4(new Vector3(1, 1)));
-        Debug.Log("mult: " + m.MultiplyPoint3x4(new Vector3(-1, -1)));
 
         Debug.Log(initVectors[maxDistNum].ToString());
 
