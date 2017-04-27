@@ -5,16 +5,18 @@ using UnityEngine;
 
 public class CutManager {
 
+
     private List<int> fun = new List<int>(new int[1000]); // 0's by default
+
+    private Dictionary<int, List<Blank>> bestBlanks = new Dictionary<int, List<Blank>>();
 
     private List<Vector3> initPoly;
     private List<Vector3> initVectors = new List<Vector3>();
     private List<Vector3> rotPoly;
     private List<Vector3> rotVectors;
-
+    
     private int a = 1;
     private int b = 1;
-
 
     private int maxX = 0;
     private int step;
@@ -33,33 +35,46 @@ public class CutManager {
         step = GCD(a, b);
     }
 
-    public int MakeCutting()
+    public int MakeCutting(out List<Blank> blanks)
     {
+        ChooseBaseAndRotate();
+
+        int lastMax = Math.Min(a, b);
+
         for (int x = Math.Min(a, b); x <= maxX; x += step)
         {
-            List<Blank> blanks = new List<Blank>();
+            List<Blank> b1 = new List<Blank>();
+            List<Blank> b2 = new List<Blank>();
             int p1 = 0, p2 = 0;
 
             if (x >= a)
             {
-                CutStripe(x, a, out blanks, out p1);
+                CutStripe(x, a, out b1, out p1);
                 p1 += fun[x - a];
             }
             if (x >= b)
             {
-                CutStripe(x, b, out blanks, out p2);
+                CutStripe(x, b, out b2, out p2);
                 p2 += fun[x - b];
             }
 
             int maxP = Math.Max(p1, p2);
+
+            if (p1 > p2)
+                bestBlanks[x] = b1;
+            else
+                bestBlanks[x] = b2;
+
             fun[x] = maxP;
+            lastMax = x;
         }
-        Debug.Log(fun.ToArray().ToString());
-        return fun[maxX];
+        //blanks = null;
+        blanks = bestBlanks[lastMax];
+        return fun[lastMax];
     }
 
     // Cut stripe [x - delta, x]
-    public void CutStripe(int x, int delta, out List<Blank> blanks, out int price)
+    private void CutStripe(int x, int delta, out List<Blank> blanks, out int price)
     {
         blanks = new List<Blank>();
         price = 0;
@@ -73,7 +88,8 @@ public class CutManager {
         Vector3 infY = GetMaxIntersectionsByY(x, delta, xDown, deltaDown);
 
         int height = (delta == a) ? b : a;
-        float curY = infY.y;
+        // TODO 
+        int curY = (int) infY.y;
 
         while (curY <= supY.y - height)
         {
@@ -89,13 +105,15 @@ public class CutManager {
         }
     }
 
-    public void ChooseBaseAndRotate()
+    private void ChooseBaseAndRotate()
     {
         double maxDist = 0;
         int maxDistNum = -1;
+        Vector3 center = Vector3.zero;
 
         for (int i = 0; i < initVectors.Count ; i++)
         {
+            center += initPoly[i];
             double dist = Vector3.Magnitude(initVectors[i]);
             if (dist > maxDist)
             {
@@ -104,13 +122,27 @@ public class CutManager {
             }
         }
 
-        Debug.Log("s" + initVectors[maxDistNum]);
+        center /= initVectors.Count;
 
-        float angle = Vector3.Angle(initVectors[maxDistNum], new Vector3(0, 1));
-        Debug.Log("" + angle);
+        Debug.Log("base vector: " + initVectors[maxDistNum]);
+
+        // Пока что считаем, что изначально фигура лежит в 1 координатной четверти
+        int mul = 1;
+        Debug.Log("center: " + center);
+        if (center.y > initVectors[maxDistNum].y)
+            mul = -1;
+
+        float angle = mul * Vector3.Angle(initVectors[maxDistNum], new Vector3(0, 1));
+        Debug.Log("rotation angle: " + angle);
+
         Quaternion rotation = Quaternion.Euler(0, 0, angle);
         Matrix4x4 m = Matrix4x4.identity;
         m.SetTRS(new Vector3(0, 0, 0), rotation, new Vector3(1, 1, 1));
+        Debug.Log("mult: " + m.MultiplyPoint3x4(new Vector3(0, 0)));
+        Debug.Log("mult: " + m.MultiplyPoint3x4(new Vector3(0, 1)));
+        Debug.Log("mult: " + m.MultiplyPoint3x4(new Vector3(1, 0)));
+        Debug.Log("mult: " + m.MultiplyPoint3x4(new Vector3(1, 1)));
+        Debug.Log("mult: " + m.MultiplyPoint3x4(new Vector3(-1, -1)));
 
         Debug.Log(initVectors[maxDistNum].ToString());
 
@@ -136,34 +168,18 @@ public class CutManager {
             rotPoly[i + 1] = rotPoly[i] + newVec;
         }
 
-        Vector3 baseVec = rotPoly[maxDistNum] + rotVectors[maxDistNum];
+        Vector3 baseVec = rotPoly[0] + rotVectors[0];
+        Debug.Log("rotPoly");
         for (int i = 0; i < rotPoly.Count; i++)
         {
             rotPoly[i] -= new Vector3(baseVec.x, 0);
-
+            Debug.Log(rotPoly[i]);
             if (rotPoly[i].x > maxX)
-                maxX = (int) Math.Floor(rotPoly[i].x); // May be Ceiling is better, should be tested
+            {
+                maxX = Mathf.RoundToInt(rotPoly[i].x); 
+            }
         }
-        
-
-        //Vector3 newVec = m.MultiplyPoint3x4(initVectors[initVectors.Count - 1]);
-        //Vector3 newPoint = newVec + initPoly[initPoly.Count - 1];
-        //Debug.Log(initPoly[0].ToString() + " new: " + newPoint.ToString());
-        //initPoly[0] = newPoint;
-
-        //for (int i = 0; i < initVectors.Count - 1; i++)
-        //{
-        //    newVec = m.MultiplyPoint3x4(initVectors[i]);
-        //    newPoint = newVec + initPoly[i];
-        //    Debug.Log(initPoly[i + 1].ToString() + " new: " + newPoint.ToString());
-        //    initPoly[0] = newPoint;
-        //}
-
-        //for (int i = 0; i < initVectors.Count ; i++)
-        //{
-        //    newVec = m.MultiplyPoint3x4(initVectors[i]);
-        //    Debug.Log(initVectors[i].ToString() + " new: " + newVec.ToString());
-        //}
+        Debug.Log("rotPoly end");
     }
     
     private void FindIntersectNums(int x, int delta, out int upVecXNum, out int downVecXNum, out int upVecDeltaNum, out int downVecDeltaNum)
@@ -177,24 +193,24 @@ public class CutManager {
 
             if (rotPoly[i + 1].x > rotPoly[i].x)
             {
-                if (x >= rotPoly[i].x && x <= rotPoly[i + 1].x)
+                if (x >= Mathf.RoundToInt(rotPoly[i].x) && x <= Mathf.RoundToInt(rotPoly[i + 1].x))
                     n1 = i;
 
-                if (x - delta >= rotPoly[i].x && x - delta <= rotPoly[i + 1].x)
+                if (x - delta >= Mathf.RoundToInt(rotPoly[i].x) && x - delta <= Mathf.RoundToInt(rotPoly[i + 1].x))
                     n3 = i;
             }
             else
             {
-                if (x >= rotPoly[i + 1].x && x <= rotPoly[i].x)
+                if (x >= Mathf.RoundToInt(rotPoly[i + 1].x) && x <= Mathf.RoundToInt(rotPoly[i].x))
                     n2 = i;
-                if (x - delta >= rotPoly[i + 1].x && x - delta <= rotPoly[i].x)
+                if (x - delta >= Mathf.RoundToInt(rotPoly[i + 1].x) && x - delta <= Mathf.RoundToInt(rotPoly[i].x))
                     n4 = i;
             }
         }
 
-        if (x <= rotPoly[rotPoly.Count - 1].x && x >= rotPoly[0].x)
+        if (x <= Mathf.RoundToInt(rotPoly[rotPoly.Count - 1].x) && x >= Mathf.RoundToInt(rotPoly[0].x))
             n2 = rotPoly.Count - 1;
-        if (x - delta <= rotPoly[rotPoly.Count - 1].x && x - delta >= rotPoly[0].x)
+        if (x - delta <= Mathf.RoundToInt(rotPoly[rotPoly.Count - 1].x) && x - delta >= Mathf.RoundToInt(rotPoly[0].x))
             n4 = rotPoly.Count - 1;
 
         upVecXNum = n1;
@@ -204,7 +220,7 @@ public class CutManager {
     }
 
 
-    public Vector3 GetMinIntersectionsByY(int x, int delta, int vecNumX, int vecNumDelta)
+    private Vector3 GetMinIntersectionsByY(int x, int delta, int vecNumX, int vecNumDelta)
     {
         Vector3 inter1;
         Vector3 inter2;

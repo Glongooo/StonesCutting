@@ -95,19 +95,18 @@ public class LayerContainerUI : MonoBehaviour
 
         List<Vector3> list = new List<Vector3>();
         list.Add(new Vector3(0, 3));
-        list.Add(new Vector3(3, 3));
+        list.Add(new Vector3(2, 2));
         list.Add(new Vector3(3, 0));
         list.Add(new Vector3(0, 0));
+
         CutManager cut = new CutManager(list);
-        cut.ChooseBaseAndRotate();
         List<Blank> bls = new List<Blank>();
-        int price;
-        cut.CutStripe(2,1,out bls, out price);
+
+        Debug.Log(cut.MakeCutting(out bls));
         foreach (var b in bls)
         {
             Debug.Log(b.ToString());
         }
-        Debug.Log(cut.MakeCutting());
 
 
     }
