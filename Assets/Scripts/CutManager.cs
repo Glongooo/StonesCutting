@@ -21,6 +21,7 @@ public class CutManager {
     private int maxX = 0;
     private int step;
 
+    // initPoly - отсортированный по часовой стрелке массив вершин
     public CutManager(List<Vector3> initPoly)
     {
         this.initPoly = initPoly;
@@ -143,10 +144,7 @@ public class CutManager {
 
         if (initVectors[maxDistNum].x < 0)
             angle = -angle;
-
-        //if (center.y < initPoly[maxDistNum].y)
-        //    angle = -angle;
-
+        
         Debug.Log("rotation angle: " + angle);
 
         Quaternion rotation = Quaternion.Euler(0, 0, angle);
