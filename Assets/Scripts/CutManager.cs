@@ -68,7 +68,7 @@ public class CutManager {
             fun[x] = maxP;
             lastMax = x;
         }
-        //blanks = null;
+
         blanks = bestBlanks[lastMax];
         return fun[lastMax];
     }
@@ -89,9 +89,9 @@ public class CutManager {
 
         int height = (delta == a) ? b : a;
         // TODO 
-        int curY = (int) infY.y;
+        int curY = Mathf.RoundToInt(infY.y);
 
-        while (curY <= supY.y - height)
+        while (curY <= Mathf.RoundToInt(supY.y - height))
         {
             Blank blank = new Blank(
                 new Vector3(x - delta, curY),
@@ -168,7 +168,7 @@ public class CutManager {
             rotPoly[i + 1] = rotPoly[i] + newVec;
         }
 
-        Vector3 baseVec = rotPoly[0] + rotVectors[0];
+        Vector3 baseVec = rotPoly[maxDistNum];
         Debug.Log("rotPoly");
         for (int i = 0; i < rotPoly.Count; i++)
         {
@@ -208,10 +208,23 @@ public class CutManager {
             }
         }
 
-        if (x <= Mathf.RoundToInt(rotPoly[rotPoly.Count - 1].x) && x >= Mathf.RoundToInt(rotPoly[0].x))
-            n2 = rotPoly.Count - 1;
-        if (x - delta <= Mathf.RoundToInt(rotPoly[rotPoly.Count - 1].x) && x - delta >= Mathf.RoundToInt(rotPoly[0].x))
-            n4 = rotPoly.Count - 1;
+        if (rotPoly[rotPoly.Count - 1].x != rotPoly[0].x) {
+            if (rotPoly[0].x > rotPoly[rotPoly.Count - 1].x)
+            {
+                if (x >= Mathf.RoundToInt(rotPoly[rotPoly.Count - 1].x) && x <= Mathf.RoundToInt(rotPoly[0].x))
+                    n1 = rotPoly.Count - 1;
+
+                if (x - delta >= Mathf.RoundToInt(rotPoly[rotPoly.Count - 1].x) && x - delta <= Mathf.RoundToInt(rotPoly[0].x))
+                    n3 = rotPoly.Count - 1;
+            }
+            else
+            {
+                if (x >= Mathf.RoundToInt(rotPoly[0].x) && x <= Mathf.RoundToInt(rotPoly[rotPoly.Count - 1].x))
+                    n2 = rotPoly.Count - 1;
+                if (x - delta >= Mathf.RoundToInt(rotPoly[0].x) && x - delta <= Mathf.RoundToInt(rotPoly[rotPoly.Count - 1].x))
+                    n4 = rotPoly.Count - 1;
+            }
+        }
 
         upVecXNum = n1;
         downVecXNum = n2;
@@ -224,6 +237,7 @@ public class CutManager {
     {
         Vector3 inter1;
         Vector3 inter2;
+        Debug.Log("x " + x);
         LinesIntersection(out inter1, rotPoly[vecNumX], rotVectors[vecNumX], new Vector3(x, 0, 0), new Vector3(0, 1, 0));
         LinesIntersection(out inter2, rotPoly[vecNumDelta], rotVectors[vecNumDelta], new Vector3(x - delta, 0, 0), new Vector3(0, 1, 0));
 

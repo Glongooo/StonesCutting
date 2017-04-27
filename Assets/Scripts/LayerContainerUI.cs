@@ -94,9 +94,9 @@ public class LayerContainerUI : MonoBehaviour
         }
 
         List<Vector3> list = new List<Vector3>();
-        list.Add(new Vector3(0, 3));
-        list.Add(new Vector3(2, 2));
-        list.Add(new Vector3(3, 0));
+        list.Add(new Vector3(0, 30));
+        list.Add(new Vector3(10, 10));
+        list.Add(new Vector3(30, 0));
         list.Add(new Vector3(0, 0));
 
         CutManager cut = new CutManager(list);
@@ -107,8 +107,6 @@ public class LayerContainerUI : MonoBehaviour
         {
             Debug.Log(b.ToString());
         }
-
-
     }
 
     //private void InsertGORoundSortedList(List<GameObject> list, GameObject go)
