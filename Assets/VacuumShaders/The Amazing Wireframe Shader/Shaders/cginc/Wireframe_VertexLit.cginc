@@ -1,3 +1,5 @@
+// Upgrade NOTE: replaced 'mul(UNITY_MATRIX_MVP,*)' with 'UnityObjectToClipPos(*)'
+
 #ifndef VACUUM_WIREFRAME_VERTEXLIT_CGINC
 #define VACUUM_WIREFRAME_VERTEXLIT_CGINC
 
@@ -69,7 +71,7 @@ v2f vert (appdata_full v)
 #endif 
 
 
-	o.pos = mul(UNITY_MATRIX_MVP, v.vertex); 
+	o.pos = UnityObjectToClipPos(v.vertex); 
 	o.uv.xy = v.texcoord.xy * _MainTex_ST.xy + _MainTex_ST.zw;
 	o.uv.xy += _V_WIRE_MainTex_Scroll.xy * _Time.x;
 

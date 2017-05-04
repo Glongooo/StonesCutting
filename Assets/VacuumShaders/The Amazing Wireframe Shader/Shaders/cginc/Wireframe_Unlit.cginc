@@ -1,3 +1,5 @@
+// Upgrade NOTE: replaced 'mul(UNITY_MATRIX_MVP,*)' with 'UnityObjectToClipPos(*)'
+
 #ifndef VACUUM_WIREFRAME_UNLIT_CGINC
 #define VACUUM_WIREFRAME_UNLIT_CGINC
 
@@ -101,7 +103,7 @@ vOutput vert(vInput v)
 //V_CW_TransformPoint(v.vertex);
 	
 
-	o.pos = mul(UNITY_MATRIX_MVP, v.vertex);
+	o.pos = UnityObjectToClipPos(v.vertex);
 
 	#ifdef V_WIRE_HAS_TEXTURE
 		o.uv.xy = TRANSFORM_TEX(v.texcoord.xy, _MainTex);		

@@ -1,3 +1,5 @@
+// Upgrade NOTE: replaced 'mul(UNITY_MATRIX_MVP,*)' with 'UnityObjectToClipPos(*)'
+
 // VacuumShaders 2015
 // https://www.facebook.com/VacuumShaders
 
@@ -224,7 +226,7 @@ Shader "VacuumShaders/The Amazing Wireframe/Geometry Shader/Physically Based"
 		o.custompack0.xyzw = customInputData.texcoord;
 		o.custompack1.xyzw = customInputData.texcoord1;
 		o.custompack2.xyzw = customInputData.mass;
-		o.pos = mul(UNITY_MATRIX_MVP, v.vertex);
+		o.pos = UnityObjectToClipPos(v.vertex);
 		float3 worldPos = mul(unity_ObjectToWorld, v.vertex).xyz;
 		fixed3 worldNormal = UnityObjectToWorldNormal(v.normal);
 		fixed3 worldTangent = UnityObjectToWorldDir(v.tangent.xyz);
@@ -466,7 +468,7 @@ Shader "VacuumShaders/The Amazing Wireframe/Geometry Shader/Physically Based"
 		o.custompack0.xyzw = customInputData.texcoord;
 		o.custompack1.xyzw = customInputData.texcoord1;
 		o.custompack2.xyzw = customInputData.mass;
-		o.pos = mul(UNITY_MATRIX_MVP, v.vertex);
+		o.pos = UnityObjectToClipPos(v.vertex);
 		float3 worldPos = mul(unity_ObjectToWorld, v.vertex).xyz;
 		fixed3 worldNormal = UnityObjectToWorldNormal(v.normal);
 		fixed3 worldTangent = UnityObjectToWorldDir(v.tangent.xyz);
@@ -661,7 +663,7 @@ Shader "VacuumShaders/The Amazing Wireframe/Geometry Shader/Physically Based"
 		o.custompack0.xyzw = customInputData.texcoord;
 		o.custompack1.xyzw = customInputData.texcoord1;
 		o.custompack2.xyzw = customInputData.mass;
-		o.pos = mul(UNITY_MATRIX_MVP, v.vertex);
+		o.pos = UnityObjectToClipPos(v.vertex);
 		float3 worldPos = mul(unity_ObjectToWorld, v.vertex).xyz;
 		fixed3 worldNormal = UnityObjectToWorldNormal(v.normal);
 		fixed3 worldTangent = UnityObjectToWorldDir(v.tangent.xyz);
