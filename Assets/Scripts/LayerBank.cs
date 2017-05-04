@@ -14,6 +14,7 @@ public enum LayerBankState
 
 public class LayerBank : MonoBehaviour
 {
+    public CuttingUI cuttingUi;
     [HideInInspector]
     public List<List<Vector3>> layers = new List<List<Vector3>>();
     [HideInInspector]
@@ -261,7 +262,7 @@ public class LayerBank : MonoBehaviour
 
 
         #region hats for main mesh
-        var cp = CalcCenterPoint(layers[0].ToArray());
+        var cp = LayerHelper.CalcCenterPoint(layers[0].ToArray());
         verts.Add(cp);
         for (int i = 0; i < nums[0].Count - 1; i++)
         {
@@ -273,7 +274,7 @@ public class LayerBank : MonoBehaviour
         Tr.Add(nums[0][nums[0].Count - 1]);
         Tr.Add(nums[0][0]);
 
-        cp = CalcCenterPoint(layers[layers.Count - 1].ToArray());
+        cp = LayerHelper.CalcCenterPoint(layers[layers.Count - 1].ToArray());
         verts.Add(cp);
         for (int i = 0; i < nums[nums.Count - 1].Count - 1; i++)
         {
@@ -376,7 +377,7 @@ public class LayerBank : MonoBehaviour
                     slicesAll.Add(newDown.gameObject);
                 }
 
-                if (i < slices.Length-1)
+                if (i < slices.Length - 1)
                 {
                     var newDown = Instantiate(sliceUpperBound, sliceUpperBound.transform.parent).GetComponent<MeshFilter>();
                     newDown.gameObject.SetActive(true);
@@ -476,7 +477,7 @@ public class LayerBank : MonoBehaviour
             {
                 points = new List<Vector3>() { new Vector3(0, 0, zmin), new Vector3(1, 0, zmin), new Vector3(0, 1, zmin) };
             }
-            var centr = CalcCenterPoint(meshFilter.mesh);
+            var centr = LayerHelper.CalcCenterPoint(meshFilter.mesh);
             var plane = new Plane(points[0], points[1], points[2]);
             if (Vector3.Magnitude(plane.normal + (centr - points[0])) < Vector3.Magnitude(centr - points[0]))
             {
@@ -500,20 +501,18 @@ public class LayerBank : MonoBehaviour
         }
     }
 
-    private Vector3 CalcCenterPoint(Mesh mesh)
+    public void OnCutButton()
     {
-        var vrts = mesh.vertices;
-        return CalcCenterPoint(vrts);
-
+        if (hats != null && hats.Count > 0)
+        {
+            cuttingUi.gameObject.SetActive(true);
+            cuttingUi.MakeCuts(hats);
+        }
     }
 
-    private Vector3 CalcCenterPoint(Vector3[] vrts)
+    public void OnHideCutButton()
     {
-        Vector3 result = Vector3.zero; ;
-        foreach (var i in vrts)
-            result += i;
-        result /= vrts.Length;
-        return result;
+        cuttingUi.gameObject.SetActive(false);
     }
 
     private void ToggleMainMeshComponents(bool value)
@@ -544,7 +543,6 @@ public class LayerBank : MonoBehaviour
             }
         }
     }
-
 }
 
 public class LayerHelper
@@ -712,6 +710,22 @@ public class LayerHelper
         result.Add(a);
         result.Add(b);
         result.Add(c);
+        return result;
+    }
+
+    public static Vector3 CalcCenterPoint(Mesh mesh)
+    {
+        var vrts = mesh.vertices;
+        return CalcCenterPoint(vrts);
+
+    }
+
+    public static Vector3 CalcCenterPoint(Vector3[] vrts)
+    {
+        Vector3 result = Vector3.zero; ;
+        foreach (var i in vrts)
+            result += i;
+        result /= vrts.Length;
         return result;
     }
 }

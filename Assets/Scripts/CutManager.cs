@@ -15,8 +15,8 @@ public class CutManager {
     private List<Vector3> rotPoly;
     private List<Vector3> rotVectors;
     
-    private int a = 1;
-    private int b = 1;
+    private int a = 8;
+    private int b = 8;
 
     private int maxX = 0;
     private int step;
