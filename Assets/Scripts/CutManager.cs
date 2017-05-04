@@ -21,11 +21,34 @@ public class CutManager {
     private int maxX = 0;
     private int step;
 
+    private Vector3 _shift = new Vector3(0, 0);
+    private float _angle = 0f;
+
     // initPoly - отсортированный по часовой стрелке массив вершин
     public CutManager(List<Vector3> initPoly)
     {
         this.initPoly = initPoly;
         rotPoly = new List<Vector3>(new Vector3[initPoly.Count]);
+
+        float minY = 0;
+        float minX = 0;
+        for (int i = 0; i < initPoly.Count; i++)
+        {
+            if (initPoly[i].y < minY)
+                minY = initPoly[i].y;
+            if (initPoly[i].x < minX)
+                minX = initPoly[i].x;
+        }
+
+        float shiftX = -minX;
+        float shiftY = -minY;
+
+        _shift += new Vector3(shiftX, shiftY);
+
+        for (int i = 0; i < initPoly.Count; i++)
+        {
+            initPoly[i] += new Vector3(shiftX, shiftY);
+        }
 
         for (int i = 0; i < initPoly.Count - 1; i++)
             initVectors.Add(initPoly[i + 1] - initPoly[i]);
@@ -82,6 +105,22 @@ public class CutManager {
         }
 
         blanks = bestBlanks[lastMax];
+        foreach (var b in blanks)
+        {
+            //Quaternion rotation = Quaternion.Euler(0, 0, -_angle);
+            //Matrix4x4 m = Matrix4x4.identity;
+            //m.SetTRS(new Vector3(0, 0, 0), rotation, new Vector3(1, 1, 1));
+            //b.v1 = m.MultiplyPoint3x4(b.v1);
+            //b.v2 = m.MultiplyPoint3x4(b.v2);
+            //b.v3 = m.MultiplyPoint3x4(b.v3);
+            //b.v4 = m.MultiplyPoint3x4(b.v4);
+
+            b.v1 -= _shift;
+            b.v2 -= _shift;
+            b.v3 -= _shift;
+            b.v4 -= _shift;
+
+        }
         return fun[lastMax];
     }
 
@@ -144,7 +183,9 @@ public class CutManager {
 
         if (initVectors[maxDistNum].x < 0)
             angle = -angle;
-        
+
+        _angle = angle;
+
         Debug.Log("rotation angle: " + angle);
 
         Quaternion rotation = Quaternion.Euler(0, 0, angle);
@@ -187,6 +228,7 @@ public class CutManager {
             }
         }
         Debug.Log("rotPoly end");
+        _shift -= new Vector3(baseVec.x, 0);
     }
     
     private void FindIntersectNums(int x, int delta, out int upVecXNum, out int downVecXNum, out int upVecDeltaNum, out int downVecDeltaNum)
@@ -263,6 +305,11 @@ public class CutManager {
     public static bool LinesIntersection(out Vector3 intersection, Vector3 linePoint1, Vector3 lineVec1, Vector3 linePoint2, Vector3 lineVec2)
     {
 
+        linePoint1.z = 0;
+        lineVec1.z = 0;
+        linePoint2.z = 0;
+        lineVec2.z = 0;
+
         Vector3 lineVec3 = linePoint2 - linePoint1;
         Vector3 crossVec1and2 = Vector3.Cross(lineVec1, lineVec2);
         Vector3 crossVec3and2 = Vector3.Cross(lineVec3, lineVec2);
@@ -270,7 +317,7 @@ public class CutManager {
         float planarFactor = Vector3.Dot(lineVec3, crossVec1and2);
 
         //is coplanar, and not parrallel
-        if (Mathf.Abs(planarFactor) < 0.0001f && crossVec1and2.sqrMagnitude > 0.0001f)
+        if (Mathf.Abs(planarFactor) < 0.000001f && crossVec1and2.sqrMagnitude > 0.000001f)
         {
             float s = Vector3.Dot(crossVec3and2, crossVec1and2) / crossVec1and2.sqrMagnitude;
             intersection = linePoint1 + (lineVec1 * s);

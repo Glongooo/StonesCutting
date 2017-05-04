@@ -25,20 +25,35 @@ public class CuttingUI : DrawingUI
 
     }
 
+    private bool VEquals(Vector3 v1, Vector3 v2)
+    {
+        return Mathf.Round(v1.x) == Mathf.Round(v2.x) && Mathf.Round(v1.y) == Mathf.Round(v2.y) && Mathf.Round(v1.z) == Mathf.Round(v2.z);
+    }
+
     private DrawingObject CutSlice(List<Vector3> slice)
     {
         var res = new DrawingObject();
         res.points = slice;
-        CutManager cut = new CutManager(slice);
+        List<Vector3> slice1 = new List<Vector3>();
+        slice1.Add(slice[0]);
+        for (int i = 1; i < slice.Count; i++)
+        {
+            if (VEquals(slice[i - 1], slice[i]))
+                continue;
+            slice1.Add(slice[i]);
+        }
+        CutManager cut = new CutManager(slice1);
         List<Blank> bls = new List<Blank>();
+        int sum = cut.MakeCutting(out bls);
+        Debug.Log("Sum: " + sum);
         foreach (var i in bls)
         {
             var bl = new DrawingObject();
             bl.points = new List<Vector3>();
-            bl.points.Add(i.v1 * 100);
-            bl.points.Add(i.v2 * 100);
-            bl.points.Add(i.v3 * 100);
-            bl.points.Add(i.v4 * 100);
+            bl.points.Add(i.v1);
+            bl.points.Add(i.v2);
+            bl.points.Add(i.v3);
+            bl.points.Add(i.v4);
             res.innerObjects.Add(bl);
         }
 
