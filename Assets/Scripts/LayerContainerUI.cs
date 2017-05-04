@@ -75,10 +75,11 @@ public class LayerContainerUI : DrawingUI
         }
 
         List<Vector3> list = new List<Vector3>();
-        list.Add(new Vector3(0, 3));
         list.Add(new Vector3(2, 2));
-        list.Add(new Vector3(3, 0));
-        list.Add(new Vector3(0, 0));
+        list.Add(new Vector3(1, 4));
+        list.Add(new Vector3(2, 5));
+        list.Add(new Vector3(5, 4));
+        list.Add(new Vector3(4, 2));
 
         CutManager cut = new CutManager(list);
         List<Blank> bls = new List<Blank>();
