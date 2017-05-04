@@ -81,7 +81,7 @@ public class DrawingUI : MonoBehaviour
         }
     }
 
-    protected void DrawLayer(List<Vector3> layer, float alpha, bool interactable)
+    protected void DrawLayer(List<Vector3> layer, float alpha, bool interactable, bool sort = true)
     {
         var localMarkers = new List<GameObject>();
         foreach (var i in layer)
@@ -99,7 +99,8 @@ public class DrawingUI : MonoBehaviour
             newMarker.transform.parent = markersParent;
             Destroy(newMarker.transform.GetChild(0).gameObject);
             localMarkers.Add(newMarker);
-            SortClockwise(localMarkers);
+            if (sort)
+                SortClockwise(localMarkers);
             //InsertGORoundSortedList(localMarkers, newMarker);
         }
 

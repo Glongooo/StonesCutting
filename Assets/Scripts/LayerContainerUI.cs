@@ -73,22 +73,6 @@ public class LayerContainerUI : DrawingUI
             txt.text = "(" + coords.x + "; " + coords.y + ")";
             txt.gameObject.SetActive(showCoords.isOn);
         }
-
-        List<Vector3> list = new List<Vector3>();
-        list.Add(new Vector3(2, 2));
-        list.Add(new Vector3(1, 4));
-        list.Add(new Vector3(2, 5));
-        list.Add(new Vector3(5, 4));
-        list.Add(new Vector3(4, 2));
-
-        CutManager cut = new CutManager(list);
-        List<Blank> bls = new List<Blank>();
-
-        Debug.Log(cut.MakeCutting(out bls));
-        foreach (var b in bls)
-        {
-            Debug.Log(b.ToString());
-        }
     }
 
     //private void InsertGORoundSortedList(List<GameObject> list, GameObject go)
