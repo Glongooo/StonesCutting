@@ -15,8 +15,8 @@ public class CutManager {
     private List<Vector3> rotPoly;
     private List<Vector3> rotVectors;
     
-    private int a = 8;
-    private int b = 8;
+    private int a = 30;
+    private int b = 30;
 
     private int maxX = 0;
     private int step;
@@ -59,7 +59,7 @@ public class CutManager {
         step = GCD(a, b);
     }
 
-    public int MakeCutting(out List<Blank> blanks)
+    public int MakeCutting(out List<Blank> blanks, out List<Vector3> rotpoly)
     {
         ChooseBaseAndRotate();
 
@@ -105,23 +105,44 @@ public class CutManager {
         }
 
         blanks = bestBlanks[lastMax];
-        foreach (var b in blanks)
-        {
-            //Quaternion rotation = Quaternion.Euler(0, 0, -_angle);
-            //Matrix4x4 m = Matrix4x4.identity;
-            //m.SetTRS(new Vector3(0, 0, 0), rotation, new Vector3(1, 1, 1));
-            //b.v1 = m.MultiplyPoint3x4(b.v1);
-            //b.v2 = m.MultiplyPoint3x4(b.v2);
-            //b.v3 = m.MultiplyPoint3x4(b.v3);
-            //b.v4 = m.MultiplyPoint3x4(b.v4);
+        rotpoly = rotPoly;
+        //foreach (var b in blanks)
+        //{
+        //    Quaternion rotation = Quaternion.Euler(0, 0, -_angle);
+        //    Matrix4x4 m = Matrix4x4.identity;
+        //    m.SetTRS(new Vector3(0, 0, 0), rotation, new Vector3(1, 1, 1));
+        //    Vector3 v1, v2, v3, v4;
+        //    v1 = b.v2 - b.v1;
+        //    v2 = b.v3 - b.v2;
+        //    v3 = b.v4 - b.v3;
+        //    v4 = b.v1 - b.v4;
+            
+        //    //v1 = m.MultiplyPoint3x4(v1);
+        //    //v2 = m.MultiplyPoint3x4(v2);
+        //    //v3 = m.MultiplyPoint3x4(v3);
+        //    //v4 = m.MultiplyPoint3x4(v4);
 
-            b.v1 -= _shift;
-            b.v2 -= _shift;
-            b.v3 -= _shift;
-            b.v4 -= _shift;
+        //    b.v2 = b.v1 + v1;
+        //    b.v3 = b.v2 + v2;
+        //    b.v4 = b.v3 + v3;
 
-        }
+
+        //    b.v1 -= _shift;
+        //    b.v2 -= _shift;
+        //    b.v3 -= _shift;
+        //    b.v4 -= _shift;
+
+        //    b.v1.y += 50;
+        //    b.v2.y += 50;
+        //    b.v3.y += 50;
+        //    b.v4.y += 50;
+        //}
         return fun[lastMax];
+    }
+
+    private Vector3 RotateAroundPoint(Vector3 point, Vector3 pivot, Quaternion angle)
+    {
+        return angle * (point - pivot) + pivot;
     }
 
     // Cut stripe [x - delta, x]

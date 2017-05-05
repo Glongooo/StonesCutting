@@ -33,9 +33,9 @@ public class CuttingUI : DrawingUI
     private DrawingObject CutSlice(List<Vector3> slice)
     {
         var res = new DrawingObject();
-        res.points = slice;
         List<Vector3> slice1 = new List<Vector3>();
         slice1.Add(slice[0]);
+        res.points = slice;
         for (int i = 1; i < slice.Count; i++)
         {
             if (VEquals(slice[i - 1], slice[i]))
@@ -44,7 +44,9 @@ public class CuttingUI : DrawingUI
         }
         CutManager cut = new CutManager(slice1);
         List<Blank> bls = new List<Blank>();
-        int sum = cut.MakeCutting(out bls);
+        List<Vector3> poly = new List<Vector3>();
+        int sum = cut.MakeCutting(out bls, out poly);
+        res.points = poly;
         Debug.Log("Sum: " + sum);
         foreach (var i in bls)
         {
