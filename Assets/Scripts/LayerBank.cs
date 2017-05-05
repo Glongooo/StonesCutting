@@ -728,4 +728,12 @@ public class LayerHelper
         result /= vrts.Length;
         return result;
     }
+
+    public static void MoveListByVector(List<Vector3> inp, Vector3 vec)
+    {
+        for (int i = 0; i < inp.Count; i++)
+        {
+            inp[i] += vec;
+        }
+    }
 }

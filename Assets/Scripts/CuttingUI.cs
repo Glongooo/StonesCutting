@@ -77,12 +77,21 @@ public class CuttingUI : DrawingUI
         if (curSliceIndex >= 0 && curSliceIndex < slices.Count)
         {
             DropUI();
-            DrawDrawingObject(slices[curSliceIndex]);
+            DrawDrawingObject(slices[curSliceIndex], true);
         }
     }
 
-    private void DrawDrawingObject(DrawingObject obj)
+    private void DrawDrawingObject(DrawingObject obj, bool onCenter = false)
     {
+        if (onCenter)
+        {
+            var centerPoint = LayerHelper.CalcCenterPoint(obj.points.ToArray());
+            var canvCenter = transform.position;
+            var vec = canvCenter - centerPoint;
+            LayerHelper.MoveListByVector(obj.points, vec);
+            foreach (var i in obj.innerObjects)
+                LayerHelper.MoveListByVector(i.points, vec);
+        }
         DrawLayer(obj.points, 1.0f, false, false);
         foreach (var i in obj.innerObjects)
             DrawDrawingObject(i);
@@ -121,6 +130,22 @@ public class CuttingUI : DrawingUI
             slabs.Add(nlist);
         }
         MakeCuts(slabs);
+    }
+
+    public void OnNextButton()
+    {
+        curSliceIndex++;
+        if (curSliceIndex >= slices.Count)
+            curSliceIndex = slices.Count - 1;
+        DrawSlice();
+    }
+
+    public void OnPreviousButton()
+    {
+        curSliceIndex--;
+        if (curSliceIndex < 0)
+            curSliceIndex = 0;
+        DrawSlice();
     }
 
 }
