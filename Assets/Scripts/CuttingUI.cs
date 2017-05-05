@@ -42,7 +42,12 @@ public class CuttingUI : DrawingUI
                 continue;
             slice1.Add(slice[i]);
         }
-        CutManager cut = new CutManager(slice1);
+        int a = 10;
+        int b = 10;
+        int.TryParse(aInp.text, out a);
+        int.TryParse(bInp.text, out b);
+
+        CutManager cut = new CutManager(slice1, a, b);
         List<Blank> bls = new List<Blank>();
         List<Vector3> poly = new List<Vector3>();
         int sum = cut.MakeCutting(out bls, out poly);
@@ -71,6 +76,8 @@ public class CuttingUI : DrawingUI
     private int curSliceIndex = 0;
 
     public List<DrawingObject> slices = new List<DrawingObject>();
+    public InputField aInp;
+    public InputField bInp;
 
     private void DrawSlice()
     {

@@ -25,8 +25,10 @@ public class CutManager {
     private float _angle = 0f;
 
     // initPoly - отсортированный по часовой стрелке массив вершин
-    public CutManager(List<Vector3> initPoly)
+    public CutManager(List<Vector3> initPoly, int a, int b)
     {
+        this.a = a;
+        this.b = b;
         this.initPoly = initPoly;
         rotPoly = new List<Vector3>(new Vector3[initPoly.Count]);
 
