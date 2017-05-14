@@ -25,6 +25,32 @@ public class CuttingUI : DrawingUI
 
     }
 
+    //private void OnEnable()
+    //{
+    //    List<Vector3> first = new List<Vector3>()
+    //    {
+    //        new Vector3(-100, 0),
+    //        new Vector3(0, 100),
+    //        new Vector3(100, 0),
+    //        new Vector3(0 , -100),
+    //        new Vector3(-100, 0),
+    //    };
+
+    //    List<Vector3> second = new List<Vector3>()
+    //    {
+    //        new Vector3(-75, 75),
+    //        new Vector3(75, 75),
+    //        new Vector3(75, -75),
+    //        new Vector3(-75 , -75),
+    //        new Vector3(-75, 75),
+    //    };
+
+    //    var inter = PolygonIntersector.IntersectPolygons(first, second);
+    //    DrawLayer(inter, 1.0f, false, false);
+    //    DrawLayer(first, 0.5f, false, false);
+    //    DrawLayer(second, 0.1f, false, false);
+    //}
+
     private bool VEquals(Vector3 v1, Vector3 v2)
     {
         return Mathf.Round(v1.x) == Mathf.Round(v2.x) && Mathf.Round(v1.y) == Mathf.Round(v2.y) && Mathf.Round(v1.z) == Mathf.Round(v2.z);

@@ -181,7 +181,7 @@ public class MeshSlicer
 
         }
         #endregion
-        
+
         #region Initializing result meshes
         Mesh positiveMesh = new Mesh();
         positiveMesh.SetVertices(positiveVertices);
@@ -282,7 +282,7 @@ public class MeshSlicer
         var norm = plane.normal;
         var tan1 = two - one;
         var tan2 = two - three;
-        Vector3.OrthoNormalize( ref tan1, ref tan2, ref norm);
+        Vector3.OrthoNormalize(ref tan1, ref tan2, ref norm);
         Matrix4x4 toNewSpace = new Matrix4x4();
         toNewSpace.SetRow(0, tan1);
         toNewSpace.SetRow(1, tan2);
@@ -290,12 +290,13 @@ public class MeshSlicer
         toNewSpace[3, 3] = 1.0F;
         Matrix4x4 scale = new Matrix4x4();
         scale[0, 0] = 1;
-        scale[1, 1] = 1.0F ;
+        scale[1, 1] = 1.0F;
         scale[2, 2] = 1.0F;
         scale[3, 3] = 1.0F;
         Matrix4x4 fromNewSpace = toNewSpace.transpose;
         Matrix4x4 trans = toNewSpace * scale * fromNewSpace;
-        foreach(var i in vertices) { 
+        foreach (var i in vertices)
+        {
             var nv = toNewSpace.MultiplyPoint3x4(i);
             result.Add(new Vector2(nv.x, nv.y));
         }
@@ -310,7 +311,7 @@ public class MeshSlicer
         var norm = plane.normal;
         var tan1 = two - one;
         var tan2 = two - three;
-        Vector3.OrthoNormalize( ref tan1, ref tan2,ref norm);
+        Vector3.OrthoNormalize(ref tan1, ref tan2, ref norm);
         Matrix4x4 toNewSpace = new Matrix4x4();
         toNewSpace.SetRow(0, tan1);
         toNewSpace.SetRow(1, tan2);
@@ -335,5 +336,179 @@ public class MeshSlicer
 
         return backRes;
 
+    }
+}
+
+public class PolygonIntersector
+{
+    public class Intersect
+    {
+        public int result;
+        public Vector3 point;
+    }
+
+    public class IntersectionPoint
+    {
+        public IntersectionPoint otherPoint;
+        public Vector3 position;
+        public bool insideOther = false;
+        public int originalListPos = -1;
+        public int pointPos;
+        public bool stable = false;
+        public bool dirty = false;
+        public IntersectionPoint(Vector3 position)
+        {
+            this.position = position;
+        }
+
+        public IntersectionPoint(Vector3 position, bool insideOther)
+        {
+            this.position = position;
+            this.insideOther = insideOther;
+        }
+
+        public IntersectionPoint(Vector3 position, bool insideOther, bool stable, int originalPos)
+        {
+            this.position = position;
+            this.insideOther = insideOther;
+            this.stable = stable;
+            this.originalListPos = originalPos;
+        }
+    }
+
+    public static void CreateInterPoints(List<Vector3> first, List<Vector3> second, out List<IntersectionPoint> firstout, out List<IntersectionPoint> secondOut)
+    {
+        firstout = new List<IntersectionPoint>();
+        secondOut = new List<IntersectionPoint>();
+        for (int i = 0; i < first.Count; i++)
+        {
+            firstout.Add(new IntersectionPoint(first[i], IsPointInsidePoly(second, first[i]), true, i));
+        }
+
+        for (int i = 0; i < second.Count; i++)
+        {
+            secondOut.Add(new IntersectionPoint(second[i], IsPointInsidePoly(first, second[i]), true, i));
+        }
+    }
+
+    public static List<Vector3> IntersectPolygons(List<Vector3> first, List<Vector3> second)
+    {
+        List<Vector3> res = new List<Vector3>();
+        List<IntersectionPoint> firstList;
+        List<IntersectionPoint> secondList;
+        CreateInterPoints(first, second, out firstList, out secondList);
+        AddIntersectionPoints(first, second, firstList, secondList);
+        WriteIndexes(firstList);
+        WriteIndexes(secondList);
+        List<IntersectionPoint> currentList = firstList;
+        int currentIndex = 0;
+        bool end = false;
+        while (!end)
+        {
+            if (currentList[currentIndex].insideOther)
+            {
+                res.Add(currentList[currentIndex].position);
+                currentList[currentIndex].dirty = true;
+                if (!currentList[currentIndex + 1].insideOther)
+                {
+                    var prevlist = currentList;
+                    currentList = currentList == firstList ? secondList : firstList;
+                    currentIndex = currentList.FindIndex((el) => { return el == prevlist[currentIndex]; });
+                    res.Add(currentList[currentIndex].position);
+                    currentList[currentIndex].dirty = true;
+                }
+            }
+            currentIndex++;
+
+            if (currentIndex >= currentList.Count - 1 ||
+                currentList[currentIndex].dirty)
+                break;
+        }
+        ClockwiseSort sort = new ClockwiseSort();
+        sort.SortClockwise(res);
+        return res;
+    }
+
+    private static void AddIntersectionPoints(
+        List<Vector3> first,
+        List<Vector3> second,
+        List<IntersectionPoint> firstIntersections,
+        List<IntersectionPoint> secondIntersections)
+    {
+        for (int i = 0; i < first.Count - 1; i++)
+        {
+            var a1 = first[i];
+            var a2 = first[i + 1];
+            for (int j = 0; j < second.Count - 1; j++)
+            {
+                var b1 = second[j];
+                var b2 = second[j + 1];
+                var point = LineIntersect(a1, a2, b1, b2);
+                if (point.result > 0)
+                {
+                    var ind = firstIntersections.FindIndex((el) => { return el.originalListPos == i; });
+                    ind++;
+                    while (!firstIntersections[ind].stable &&
+                        Vector3.Magnitude(firstIntersections[ind].position - a1) > Vector3.Magnitude(point.point - a1))
+                        ind++;
+
+                    var ind2 = firstIntersections.FindIndex((el) => { return el.originalListPos == i; });
+                    ind2++;
+                    while (!secondIntersections[ind2].stable &&
+                        Vector3.Magnitude(secondIntersections[ind].position - b1) > Vector3.Magnitude(point.point - b1))
+                        ind2++;
+
+                    IntersectionPoint interPoint = new IntersectionPoint(point.point, true, false, -1);
+                    firstIntersections.Insert(ind, interPoint);
+                    secondIntersections.Insert(ind2, interPoint);
+                }
+            }
+        }
+    }
+
+    private static void WriteIndexes(List<IntersectionPoint> points)
+    {
+        for (int i = 0; i < points.Count; i++)
+            points[i].pointPos = i;
+    }
+
+    private static Intersect LineIntersect(Vector3 a1, Vector3 a2, Vector3 b1, Vector3 b2)
+    {
+        var res = new Intersect();
+        res.result = -1;
+        res.point = new Vector3();
+
+        float d = (a1.x - a2.x) * (b2.y - b1.y) - (a1.y - a2.y) * (b2.x - b1.x);
+        float da = (a1.x - b1.x) * (b2.y - b1.y) - (a1.y - b1.y) * (b2.x - b1.x);
+        float db = (a1.x - a2.x) * (a1.y - b1.y) - (a1.y - a2.y) * (a1.x - b1.x);
+
+        if (System.Math.Abs(d) < 0.000001)
+        {
+            res.result = 0;
+        }
+        else
+        {
+            float ta = da / d;
+            float tb = db / d;
+            if ((0 <= ta) && (ta <= 1) && (0 <= tb) && (tb <= 1))
+            {
+                res.result = 1;
+                res.point.x = a1.x + ta * (a2.x - a1.x);
+                res.point.y = a1.y + ta * (a2.y - a1.y);
+            }
+        }
+        return res;
+    }
+
+    private static bool IsPointInsidePoly(List<Vector3> poly, Vector3 point)
+    {
+        bool c = false;
+        for (int i = 0, j = poly.Count - 1; i < poly.Count; j = i++)
+        {
+            if ((((poly[i].y <= point.y) && (point.y < poly[j].y)) || ((poly[j].y <= point.y) && (point.y < poly[i].y))) &&
+              (point.x > (poly[j].x - poly[i].x) * (point.y - poly[i].y) / (poly[j].y - poly[i].y) + poly[i].x))
+                c = !c;
+        }
+        return c;
     }
 }

@@ -515,6 +515,32 @@ public class LayerBank : MonoBehaviour
         cuttingUi.gameObject.SetActive(false);
     }
 
+    /// <summary>
+    /// z1 > z2
+    /// </summary>
+    /// <param name="z1"></param>
+    /// <param name="z2"></param>
+    /// <returns></returns>
+    public List<Vector3> Intersect2Layers(float z1, float z2)
+    {
+        List<Vector3> result = null;
+        var points = new List<Vector3>() { new Vector3(0, 0, z1), new Vector3(1, 0, z1), new Vector3(0, 1, z1) };
+        Mesh hat1;
+        MeshSlicer.SliceMeshByPlane(meshFilter.mesh, points[0], points[1], points[2], out hat1);
+        points = new List<Vector3>() { new Vector3(0, 0, z2), new Vector3(1, 0, z2), new Vector3(0, 1, z2) };
+        Mesh hat2;
+        MeshSlicer.SliceMeshByPlane(meshFilter.mesh, points[0], points[1], points[2], out hat2);
+        var firstList = new List<Vector3>(hat1.vertices);
+        firstList.RemoveAt(firstList.Count - 1);
+        var secondList = new List<Vector3>(hat2.vertices);
+        secondList.RemoveAt(secondList.Count - 1);
+
+        return PolygonIntersector.IntersectPolygons(firstList, secondList);
+
+
+        return result;
+    }
+
     private void ToggleMainMeshComponents(bool value)
     {
         meshFilter.gameObject.SetActive(value);
