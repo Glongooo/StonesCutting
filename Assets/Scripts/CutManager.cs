@@ -193,7 +193,7 @@ public class CutManager {
             // Если ниже, чем область
             if (curY < infY)
             {
-                if (curY < deltaUpY && curY < xUpY )
+                if (curY < deltaDownY && curY < xDownY)
                 {
                     blank = new ElasticBlank(new List<Vector3>()
                     {
@@ -203,10 +203,10 @@ public class CutManager {
                         xDownInter,
                     });
                 }
-                else if (curY > deltaUpY && curY < xUpY)
+                else if (curY > deltaDownY && curY < xDownY)
                 {
                     Vector3 inter;
-                    LinesIntersection(out inter, deltaUpInter, xUpInter - deltaUpInter,
+                    LinesIntersection(out inter, deltaDownInter, xDownInter - deltaDownInter,
                         new Vector3(delta, curY), new Vector3(1, 0));
 
                     blank = new ElasticBlank(new List<Vector3>()
@@ -221,7 +221,7 @@ public class CutManager {
                 else
                 {
                     Vector3 inter;
-                    LinesIntersection(out inter, deltaUpInter, xUpInter - deltaUpInter,
+                    LinesIntersection(out inter, deltaDownInter, xDownInter - deltaDownInter,
                         new Vector3(delta, curY), new Vector3(1, 0));
 
                     blank = new ElasticBlank(new List<Vector3>()
