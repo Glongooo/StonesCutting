@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public class Blank {
+public class Blank : IBlank {
 
     // Clockwise sorted vertices
     public Vector3 v1;
@@ -34,6 +34,11 @@ public class Blank {
         this.v4 = v1 + new Vector3(a, 0);
     }
 
+    public List<Vector3> GetPoints()
+    {
+        return new List<Vector3>() { v1, v2, v3, v4 };
+    }
+
     public override string ToString()
     {
         Vector2 vv1 = new Vector2(v1.x, v1.y);
@@ -43,4 +48,6 @@ public class Blank {
         return vv1.ToString() + " " + vv2.ToString() + " "
             + vv3.ToString() + " " + vv4.ToString();
     }
+
+
 }

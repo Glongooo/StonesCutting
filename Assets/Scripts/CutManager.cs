@@ -8,15 +8,16 @@ public class CutManager {
 
     private List<int> fun = new List<int>(new int[1000]); // 0's by default
 
-    private Dictionary<int, List<Blank>> bestBlanks = new Dictionary<int, List<Blank>>();
+    private Dictionary<int, List<IBlank>> bestBlanks = new Dictionary<int, List<IBlank>>();
 
     private List<Vector3> initPoly;
     private List<Vector3> initVectors = new List<Vector3>();
     private List<Vector3> rotPoly;
     private List<Vector3> rotVectors;
-    
-    private int a = 30;
-    private int b = 30;
+
+    private int[] stripSizes;
+    //private int a = 30;
+    //private int b = 30;
 
     private int maxX = 0;
     private int step;
@@ -27,8 +28,8 @@ public class CutManager {
     // initPoly - отсортированный по часовой стрелке массив вершин
     public CutManager(List<Vector3> initPoly, int a, int b)
     {
-        this.a = a;
-        this.b = b;
+        //this.a = a;
+        //this.b = b;
         this.initPoly = initPoly;
         rotPoly = new List<Vector3>(new Vector3[initPoly.Count]);
 
@@ -58,54 +59,49 @@ public class CutManager {
 
         rotVectors = new List<Vector3>(new Vector3[initVectors.Count]);
 
-        step = GCD(a, b);
+        stripSizes = new int[] { a, b, 20, 35 };
+        step = GCD(stripSizes);
     }
 
-    public int MakeCutting(out List<Blank> blanks, out List<Vector3> rotpoly)
+    public int MakeCutting(out List<IBlank> blanks, out List<Vector3> rotpoly)
     {
         ChooseBaseAndRotate();
 
-        int lastMax = Math.Min(a, b);
+        int lastMax = MinInList(stripSizes);
 
-        for (int x = Math.Min(a, b); x <= maxX; x += step)
+        for (int x = lastMax; x <= maxX; x += step)
         {
-            List<Blank> b1 = new List<Blank>();
-            List<Blank> b2 = new List<Blank>();
             if (!bestBlanks.ContainsKey(x))
-                bestBlanks.Add(x, new List<Blank>());
-
-            int p1 = 0, p2 = 0;
-
-            if (x >= a)
+                bestBlanks.Add(x, new List<IBlank>());
+            
+            int maxPrice = 0;
+            int stripSizeOfMax = -1;
+            List<IBlank> maxBls = new List<IBlank>();
+            for (int i = 0; i < stripSizes.Length; i++)
             {
-                CutStripe(x, a, out b1, out p1);
-                p1 += fun[x - a];
-            }
-            if (x >= b)
-            {
-                CutStripe(x, b, out b2, out p2);
-                p2 += fun[x - b];
-            }
+                int currStripPrice;
+                List<IBlank> bls;
+                if (x >= stripSizes[i])
+                {
+                    CutStripe(x, stripSizes[i], out bls, out currStripPrice);
 
-            int maxP = Math.Max(p1, p2);
-
-            if (p1 > p2)
-            {
-                if (bestBlanks.ContainsKey(x - a))
-                    bestBlanks[x].AddRange(bestBlanks[x - a]);            
-                bestBlanks[x].AddRange(b1);
-            }
-            else
-            {
-                if (bestBlanks.ContainsKey(x - b))
-                    bestBlanks[x].AddRange(bestBlanks[x - b]);
-                bestBlanks[x].AddRange(b2);
+                    if (fun[x - stripSizes[i]] + currStripPrice >= maxPrice)
+                    {
+                        maxPrice = fun[x - stripSizes[i]] + currStripPrice;
+                        stripSizeOfMax = stripSizes[i];
+                        maxBls = bls;
+                    }
+                }
             }
 
-            fun[x] = maxP;
-            lastMax = x;
+            if (bestBlanks.ContainsKey(x - stripSizeOfMax))
+                bestBlanks[x].AddRange(bestBlanks[x - stripSizeOfMax]);
+            bestBlanks[x].AddRange(maxBls);
+
+            fun[x] = maxPrice;
         }
-
+        
+        lastMax = IndMaxInList(fun);
         blanks = bestBlanks[lastMax];
         rotpoly = rotPoly;
         //foreach (var b in blanks)
@@ -148,29 +144,148 @@ public class CutManager {
     }
 
     // Cut stripe [x - delta, x]
-    private void CutStripe(int x, int delta, out List<Blank> blanks, out int price)
+    private void CutStripe(int x, int delta, out List<IBlank> blanks, out int price)
     {
-        blanks = new List<Blank>();
+        blanks = new List<IBlank>();
         price = 0;
 
         // Vec nums
-        int xUp, xDown;
-        int deltaUp, deltaDown;
+        int xUpNum, xDownNum;
+        int deltaUpNum, deltaDownNum;
 
-        FindIntersectNums(x, delta, out xUp, out xDown, out deltaUp, out deltaDown);
-        Vector3 supY = GetMinIntersectionsByY(x, delta, xUp, deltaUp);
-        Vector3 infY = GetMaxIntersectionsByY(x, delta, xDown, deltaDown);
+        FindIntersectNums(x, delta, out xUpNum, out xDownNum, out deltaUpNum, out deltaDownNum);
 
-        int height = (delta == a) ? b : a;
+        //Vector3 secSupVec, secInfVec;
+        //Vector3 vecSupY = GetIntersections(x, delta, xUp, deltaUp, out secSupVec);
+        //Vector3 vecInfY = GetMaxIntersectionByY(x, delta, xDown, deltaDown, out secInfVec);
+
+        Vector3 xDownInter, xUpInter, deltaDownInter, deltaUpInter;
+        float xDownY, xUpY, deltaDownY, deltaUpY;
+
+        GetIntersections(x, delta, xUpNum, deltaUpNum, out xUpInter, out deltaUpInter);
+        GetIntersections(x, delta, xDownNum, deltaDownNum, out xDownInter, out deltaDownInter);
+
+        xDownY = xDownInter.y;
+        xUpY = xUpInter.y;
+        deltaDownY = deltaDownInter.y;
+        deltaUpY = deltaUpInter.y;
+
+        int height;
+        if (delta == stripSizes[0]) height = stripSizes[1];
+        else if (delta == stripSizes[1]) height = stripSizes[0];
+        else if (delta == stripSizes[2]) height = stripSizes[3];
+        else height = stripSizes[2];
+        //int height = (delta == a) ? b : a;
         // TODO 
-        int curY = Mathf.RoundToInt(infY.y);
 
-        while (curY <= Mathf.RoundToInt(supY.y - height))
+        float coef = 0.2f;
+
+        int infY = Mathf.RoundToInt(GetMaxIntersetionByY(deltaDownInter, xDownInter).y);
+        int supY = Mathf.RoundToInt(GetMinIntersetionByY(deltaUpInter, xUpInter).y - height);
+
+        int curY = infY - Mathf.RoundToInt(coef * height);
+        float maxHeight = supY + Mathf.RoundToInt(coef * height);
+
+        while (curY <= maxHeight)
         {
-            Blank blank = new Blank(
-                new Vector3(x - delta, curY),
-                delta,
-                height);
+            IBlank blank;
+
+            // Если ниже, чем область
+            if (curY < infY)
+            {
+                if (curY < deltaUpY && curY < xUpY )
+                {
+                    blank = new ElasticBlank(new List<Vector3>()
+                    {
+                        deltaDownInter,
+                        new Vector3(x - delta, curY + height),
+                        new Vector3(x, curY + height),
+                        xDownInter,
+                    });
+                }
+                else if (curY > deltaUpY && curY < xUpY)
+                {
+                    Vector3 inter;
+                    LinesIntersection(out inter, deltaUpInter, xUpInter - deltaUpInter,
+                        new Vector3(delta, curY), new Vector3(1, 0));
+
+                    blank = new ElasticBlank(new List<Vector3>()
+                    {
+                        new Vector3(x - delta, curY),
+                        new Vector3(x - delta, curY + height),
+                        new Vector3(x, curY + height),
+                        xDownInter,
+                        inter
+                    });
+                }
+                else
+                {
+                    Vector3 inter;
+                    LinesIntersection(out inter, deltaUpInter, xUpInter - deltaUpInter,
+                        new Vector3(delta, curY), new Vector3(1, 0));
+
+                    blank = new ElasticBlank(new List<Vector3>()
+                    {
+                        deltaDownInter,
+                        new Vector3(x - delta, curY + height),
+                        new Vector3(x, curY + height),
+                        new Vector3(x, curY),
+                        inter
+                    });
+                }
+            }
+            // Если выше, чем область
+            else if (curY > supY)
+            {
+                if (deltaUpY < curY + height && xUpY < curY + height)
+                {
+                    blank = new ElasticBlank(new List<Vector3>()
+                    {
+                        new Vector3(x - delta, curY),
+                        deltaUpInter,
+                        xUpInter,
+                        new Vector3(x, curY),
+                    });
+                }
+                else if (curY + height > deltaUpY && curY + height < xUpY)
+                {
+                    Vector3 inter;
+                    LinesIntersection(out inter, deltaUpInter, xUpInter - deltaUpInter, 
+                        new Vector3(delta, curY + height), new Vector3(1, 0));
+
+                    blank = new ElasticBlank(new List<Vector3>()
+                    {
+                        new Vector3(x - delta, curY),
+                        deltaUpInter,
+                        inter,
+                        new Vector3(x, curY + height),
+                        new Vector3(x, curY),
+                    });
+                }
+                else
+                {
+                    Vector3 inter;
+                    LinesIntersection(out inter, deltaUpInter, xUpInter - deltaUpInter,
+                        new Vector3(delta, curY + height), new Vector3(1, 0));
+
+                    blank = new ElasticBlank(new List<Vector3>()
+                    {
+                        new Vector3(x - delta, curY),
+                        new Vector3(x - delta, curY + height),
+                        inter,
+                        xUpInter,
+                        new Vector3(x, curY),
+                    });
+                }
+            }
+            // Если внутри области
+            else
+            {
+                blank = new Blank(
+                   new Vector3(x - delta, curY),
+                   delta,
+                   height);
+            }
             blanks.Add(blank);
 
             price += height * delta;
@@ -185,7 +300,7 @@ public class CutManager {
         int maxDistNum = -1;
         Vector3 center = Vector3.zero;
 
-        for (int i = 0; i < initVectors.Count ; i++)
+        for (int i = 0; i < initVectors.Count; i++)
         {
             center += initPoly[i];
             double dist = Vector3.Magnitude(initVectors[i]);
@@ -304,26 +419,42 @@ public class CutManager {
         downVecDeltaNum = n4;
     }
 
-
-    private Vector3 GetMinIntersectionsByY(int x, int delta, int vecNumX, int vecNumDelta)
+    public Vector3 GetMinIntersetionByY(Vector3 inter1, Vector3 inter2)
     {
-        Vector3 inter1;
-        Vector3 inter2;
-        Debug.Log("x " + x);
-        LinesIntersection(out inter1, rotPoly[vecNumX], rotVectors[vecNumX], new Vector3(x, 0, 0), new Vector3(0, 1, 0));
-        LinesIntersection(out inter2, rotPoly[vecNumDelta], rotVectors[vecNumDelta], new Vector3(x - delta, 0, 0), new Vector3(0, 1, 0));
-
         return inter1.y < inter2.y ? inter1 : inter2;
     }
 
-    private Vector3 GetMaxIntersectionsByY(int x, int delta, int vecNumX, int vecNumDelta)
+    public Vector3 GetMaxIntersetionByY(Vector3 inter1, Vector3 inter2)
     {
-        Vector3 inter1;
-        Vector3 inter2;
-        LinesIntersection(out inter1, rotPoly[vecNumX], rotVectors[vecNumX], new Vector3(x, 0, 0), new Vector3(0, -1, 0));
-        LinesIntersection(out inter2, rotPoly[vecNumDelta], rotVectors[vecNumDelta], new Vector3(x - delta, 0, 0), new Vector3(0, 1, 0));
         return inter1.y < inter2.y ? inter2 : inter1;
     }
+
+    private void GetIntersections(int x, int delta, int vecNumX, int vecNumDelta, out Vector3 xInter, out Vector3 deltaInter)
+    {
+        LinesIntersection(out xInter, rotPoly[vecNumX], rotVectors[vecNumX], new Vector3(x, 0, 0), new Vector3(0, 1, 0));
+        LinesIntersection(out deltaInter, rotPoly[vecNumDelta], rotVectors[vecNumDelta], new Vector3(x - delta, 0, 0), new Vector3(0, 1, 0));
+    }
+
+    //private Vector3 GetMaxIntersectionByY(int x, int delta, int vecNumX, int vecNumDelta, out Vector3 govnoCodeSecondIntersection)
+    //{
+    //    Vector3 inter1;
+    //    Vector3 inter2;
+    //    LinesIntersection(out inter1, rotPoly[vecNumX], rotVectors[vecNumX], new Vector3(x, 0, 0), new Vector3(0, -1, 0));
+    //    LinesIntersection(out inter2, rotPoly[vecNumDelta], rotVectors[vecNumDelta], new Vector3(x - delta, 0, 0), new Vector3(0, 1, 0));
+
+    //    Vector3 minVec;
+    //    if (inter1.y < inter2.y)
+    //    {
+    //        minVec = inter2;
+    //        govnoCodeSecondIntersection = inter1;
+    //    }
+    //    else
+    //    {
+    //        minVec = inter1;
+    //        govnoCodeSecondIntersection = inter2;
+    //    }
+    //    return minVec;
+    //}
 
     public static bool LinesIntersection(out Vector3 intersection, Vector3 linePoint1, Vector3 lineVec1, Vector3 linePoint2, Vector3 lineVec2)
     {
@@ -353,8 +484,41 @@ public class CutManager {
         }
     }
 
+    private int MinInList(int[] list)
+    {
+        int min = 100500;
+        foreach (int i in list)
+            if (i < min)
+                min = i;
+        return min;
+    }
+
+    private int IndMaxInList(List<int> list)
+    {
+        int indMin = -1;
+        int max = 0;
+        for (int i = 0; i < list.Count; i++)
+            if (list[i] >= max)
+            {
+                max = list[i];
+                indMin = i;
+            }
+        return indMin;
+    }
+
     public static int GCD(int a, int b)
     {
         return b == 0 ? a : GCD(b, a % b);
+    }
+
+    public static int GCD(int[] nums)
+    {
+        int d = nums[0];
+        for (int i = 1; i < nums.Length; i++)
+        {
+            d = GCD(d, nums[i]);
+        }
+
+        return d;
     }
 }

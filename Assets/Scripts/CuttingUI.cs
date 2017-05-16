@@ -74,7 +74,7 @@ public class CuttingUI : DrawingUI
         int.TryParse(bInp.text, out b);
 
         CutManager cut = new CutManager(slice1, a, b);
-        List<Blank> bls = new List<Blank>();
+        List<IBlank> bls = new List<IBlank>();
         List<Vector3> poly = new List<Vector3>();
         int sum = cut.MakeCutting(out bls, out poly);
         res.points = poly;
@@ -82,11 +82,7 @@ public class CuttingUI : DrawingUI
         foreach (var i in bls)
         {
             var bl = new DrawingObject();
-            bl.points = new List<Vector3>();
-            bl.points.Add(i.v1);
-            bl.points.Add(i.v2);
-            bl.points.Add(i.v3);
-            bl.points.Add(i.v4);
+            bl.points = i.GetPoints();
             res.innerObjects.Add(bl);
         }
 

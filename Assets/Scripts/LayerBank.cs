@@ -536,9 +536,6 @@ public class LayerBank : MonoBehaviour
         secondList.RemoveAt(secondList.Count - 1);
 
         return PolygonIntersector.IntersectPolygons(firstList, secondList);
-
-
-        return result;
     }
 
     private void ToggleMainMeshComponents(bool value)
