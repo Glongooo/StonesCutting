@@ -110,7 +110,7 @@ public class CuttingUI : DrawingUI
         }
     }
 
-    private void DrawDrawingObject(DrawingObject obj, bool onCenter = false)
+    private void DrawDrawingObject(DrawingObject obj, bool onCenter = false, bool isBlanks = false)
     {
         if (onCenter)
         {
@@ -121,9 +121,9 @@ public class CuttingUI : DrawingUI
             foreach (var i in obj.innerObjects)
                 LayerHelper.MoveListByVector(i.points, vec);
         }
-        DrawLayer(obj.points, 1.0f, false, false);
+        DrawLayer(obj.points, 1.0f, false, false, isBlanks);
         foreach (var i in obj.innerObjects)
-            DrawDrawingObject(i);
+            DrawDrawingObject(i, false, true);
     }
 
     public void MakeCuts(List<List<Vector3>> slabs)

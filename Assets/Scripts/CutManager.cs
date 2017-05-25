@@ -31,6 +31,11 @@ public class CutManager {
         //this.a = a;
         //this.b = b;
         this.initPoly = initPoly;
+        Debug.Log("square: " + PolySquare(initPoly));
+        Debug.Log("testsquare: " + PolySquare(new List<Vector3>() { new Vector3(-1, -1),
+        new Vector3(0, 2),
+        new Vector3(2, 2),
+        new Vector3(2, 0), }));
         rotPoly = new List<Vector3>(new Vector3[initPoly.Count]);
 
         float minY = 0;
@@ -288,8 +293,9 @@ public class CutManager {
             }
             blanks.Add(blank);
 
-            price += height * delta;
-            
+            //price += height * delta;
+            price += PolySquare(blank.GetPoints());
+
             curY += height;
         }
     }
@@ -482,6 +488,15 @@ public class CutManager {
             intersection = Vector3.zero;
             return false;
         }
+    }
+
+    private int PolySquare(List<Vector3> vcs)
+    {
+        float square = 0;
+        for (int i = 0; i < vcs.Count - 1; i++)
+            square += (vcs[i].x + vcs[i + 1].x) * (vcs[i].y - vcs[i + 1].y);
+
+        return Mathf.RoundToInt(Math.Abs( 1 / 2f * square));
     }
 
     private int MinInList(int[] list)

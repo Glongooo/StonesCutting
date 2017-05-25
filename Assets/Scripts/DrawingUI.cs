@@ -28,12 +28,13 @@ public class DrawingUI : MonoBehaviour
 
     protected List<GameObject> lineParts = new List<GameObject>();
 
-    protected void DrawLine(Vector3 position1, Vector3 position2, float alpha = 1.0f, bool curLayer = true)
+    protected void DrawLine(Vector3 position1, Vector3 position2, Color lineColor, float alpha = 1.0f, bool curLayer = true)
     {
         Vector3 differenceVector = position1 - position2;
         var newImg = (GameObject)Instantiate(linePrefab.gameObject, gameObject.transform);
         RectTransform imageRectTransform = ((Image)newImg.GetComponent<Image>()).rectTransform;
         var c = newImg.GetComponent<Image>().color;
+        c = lineColor;
         c.a = alpha;
         newImg.GetComponent<Image>().color = c;
 
@@ -56,9 +57,9 @@ public class DrawingUI : MonoBehaviour
         if (markers.Count < 2) return;
         for (int i = 0; i < markers.Count - 1; i++)
         {
-            DrawLine(markers[i].transform.position, markers[i + 1].transform.position);
+            DrawLine(markers[i].transform.position, markers[i + 1].transform.position, Color.red);
         }
-        DrawLine(markers[markers.Count - 1].transform.position, markers[0].transform.position);
+        DrawLine(markers[markers.Count - 1].transform.position, markers[0].transform.position, Color.red);
     }
 
     protected void DropUI()
@@ -81,7 +82,7 @@ public class DrawingUI : MonoBehaviour
         }
     }
 
-    protected void DrawLayer(List<Vector3> layer, float alpha, bool interactable, bool sort = true)
+    protected void DrawLayer(List<Vector3> layer, float alpha, bool interactable, bool sort = true, bool isBlanks = false)
     {
         var localMarkers = new List<GameObject>();
         foreach (var i in layer)
@@ -107,9 +108,9 @@ public class DrawingUI : MonoBehaviour
         if (localMarkers.Count < 2) return;
         for (int i = 0; i < localMarkers.Count - 1; i++)
         {
-            DrawLine(localMarkers[i].transform.position, localMarkers[i + 1].transform.position, alpha, false);
+            DrawLine(localMarkers[i].transform.position, localMarkers[i + 1].transform.position, isBlanks ? Color.blue : Color.red, alpha, false);
         }
-        DrawLine(localMarkers[localMarkers.Count - 1].transform.position, localMarkers[0].transform.position, alpha, false);
+        DrawLine(localMarkers[localMarkers.Count - 1].transform.position, localMarkers[0].transform.position, isBlanks ? Color.blue : Color.red, alpha, false);
     }
 
     protected Vector3 centerPoint;
