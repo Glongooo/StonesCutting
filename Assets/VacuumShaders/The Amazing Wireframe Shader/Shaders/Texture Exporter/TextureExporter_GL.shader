@@ -1,4 +1,6 @@
-﻿Shader "Hidden/VacuumShaders/The Amazing Wireframe/TextureExporter GL"
+﻿// Upgrade NOTE: replaced 'mul(UNITY_MATRIX_MVP,*)' with 'UnityObjectToClipPos(*)'
+
+Shader "Hidden/VacuumShaders/The Amazing Wireframe/TextureExporter GL"
 {
 	SubShader
 	{
@@ -14,7 +16,7 @@
 
             float4 vert(float4 uv : TEXCOORD3) : SV_POSITION
 			{
-                return mul(UNITY_MATRIX_MVP, fixed4(uv.xy, 0, 1));
+                return UnityObjectToClipPos(fixed4(uv.xy, 0, 1));
             }
 
             fixed4 frag() : SV_Target 

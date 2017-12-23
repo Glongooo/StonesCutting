@@ -1,4 +1,6 @@
-﻿Shader "Hidden/VacuumShaders/The Amazing Wireframe/TextureExporter"
+﻿// Upgrade NOTE: replaced 'mul(UNITY_MATRIX_MVP,*)' with 'UnityObjectToClipPos(*)'
+
+Shader "Hidden/VacuumShaders/The Amazing Wireframe/TextureExporter"
 {
 	SubShader
 	{
@@ -32,7 +34,7 @@
             vertOut vert(appdata_full v)
 			{
                 vertOut o;
-                o.pos = mul(UNITY_MATRIX_MVP, fixed4(clamp(v.texcoord.xy, 0, 1), 0, 1));
+                o.pos = UnityObjectToClipPos(fixed4(clamp(v.texcoord.xy, 0, 1), 0, 1));
                 
 				o.mass = ExtructWireframeFromVertexUV(v.texcoord);
 

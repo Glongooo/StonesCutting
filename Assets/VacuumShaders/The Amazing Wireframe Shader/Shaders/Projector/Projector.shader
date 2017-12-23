@@ -1,3 +1,5 @@
+// Upgrade NOTE: replaced 'mul(UNITY_MATRIX_MVP,*)' with 'UnityObjectToClipPos(*)'
+
 // Upgrade NOTE: replaced '_Projector' with 'unity_Projector'
 // Upgrade NOTE: replaced '_ProjectorClip' with 'unity_ProjectorClip'
 
@@ -82,7 +84,7 @@ Shader "VacuumShaders/The Amazing Wireframe/Projector"
 //V_CW_TransformPoint(v.vertex);
 
 				
-				o.pos = mul (UNITY_MATRIX_MVP, v.vertex);
+				o.pos = UnityObjectToClipPos (v.vertex);
 				o.uvShadow = mul (unity_Projector, v.vertex);
 				o.uvFalloff = mul (unity_ProjectorClip, v.vertex);
 
