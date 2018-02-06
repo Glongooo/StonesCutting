@@ -8,6 +8,60 @@ public class LayerContainerUI : DrawingUI
     public static LayerContainerUI Instance { get { return _Instance; } }
     private static LayerContainerUI _Instance = null;
 
+    private Stack<AbstractCommand> UndoStack = new Stack<AbstractCommand>();
+    private Stack<AbstractCommand> RedoStack = new Stack<AbstractCommand>();
+
+    #region Commands
+    private class MoveMarkerCommand : AbstractCommand
+    {
+        private Vector3 from;
+        private Vector3 to;
+        private GameObject marker;
+
+        public MoveMarkerCommand(Vector3 from, Vector3 to, GameObject marker)
+        {
+            this.from = from;
+            this.to = to;
+            this.marker = marker;
+        }
+
+        public override void Do(object context)
+        {
+            marker.transform.position = to;
+            (context as LayerContainerUI).DrawLines();
+        }
+
+        public override void Undo(object context)
+        {
+            marker.transform.position = from;
+            (context as LayerContainerUI).DrawLines();
+        }
+    }
+
+    private class AddMarkerCommand : AbstractCommand
+    {
+        Vector3 coords;
+        GameObject marker = null;
+
+        public AddMarkerCommand(Vector3 coords)
+        {
+            this.coords = coords;
+        }
+
+        public override void Do(object context)
+        {
+            marker = (context as LayerContainerUI).AddMarker(coords);
+        }
+
+        public override void Undo(object context)
+        {
+            (context as LayerContainerUI).RemoveMarker(marker);
+            marker = null;
+        }
+    }
+
+    #endregion
+
     #region Inspector Fields
 
     [SerializeField]
@@ -55,7 +109,18 @@ public class LayerContainerUI : DrawingUI
             i.transform.GetChild(0).gameObject.SetActive(val);
     }
 
-    public void AddMarker(Vector3 coords)
+    public void RemoveMarker(GameObject marker)
+    {
+        markers.Remove(marker);
+        if(markers.Count != 0)
+        {
+            SortClockwise(markers);
+            DrawLines();
+        }
+        Destroy(marker);
+    }
+
+    public GameObject AddMarker(Vector3 coords)
     {
         var newMarker = Instantiate(markerPrefab);
         newMarker.GetComponent<DragableElement>().OnDropEventHandler += OnDropEvent;
@@ -73,33 +138,9 @@ public class LayerContainerUI : DrawingUI
             txt.text = "(" + coords.x + "; " + coords.y + ")";
             txt.gameObject.SetActive(showCoords.isOn);
         }
+
+        return newMarker;
     }
-
-    //private void InsertGORoundSortedList(List<GameObject> list, GameObject go)
-    //{
-    //    if (list.Count >= 3)
-    //    {
-    //        Vector3 centerPoint = Vector3.zero;
-    //        foreach (var i in list)
-    //            centerPoint += i.transform.localPosition;
-    //        centerPoint /= list.Count;
-    //        Vector3 tarVec = go.transform.localPosition - centerPoint;
-    //        Vector3 nulVec = list[0].transform.localPosition - centerPoint;
-    //        float tarAngle = PositiveAngleBetween(nulVec, tarVec);
-    //        for (int i = 0; i < list.Count - 1; i++)
-    //        {
-    //            if (PositiveAngleBetween(nulVec, list[i].transform.localPosition) <= tarAngle &&
-    //                PositiveAngleBetween(nulVec, list[i + 1].transform.localPosition) >= tarAngle)
-    //            {
-    //                list.Insert(i + 1, go);
-    //                return;
-
-    //            }
-
-    //        }
-    //    }
-    //    list.Add(go);
-    //}
 
     private float PositiveAngleBetween(Vector3 from, Vector3 to)
     {
@@ -110,23 +151,28 @@ public class LayerContainerUI : DrawingUI
 
     private void OnDropEvent(DragableElement el)
     {
-        DrawLines();
+        var command = new MoveMarkerCommand((Vector3)el.startPos, el.transform.position, el.gameObject);
+        command.Do(this);
+        UndoStack.Push(command);
+        RedoStack.Clear();
     }
 
     public void OnClick()
     {
         var mp = Input.mousePosition;
         var newPos = Camera.allCameras[0].ScreenToWorldPoint(mp);
-        AddMarker(mp);
-        var posList = new List<Vector3>();
-        foreach (var i in markers)
-            posList.Add(i.transform.position);
-        //renderer.SetPositions(posList.ToArray());
+
+        var command = new AddMarkerCommand(mp);
+        command.Do(this);
+        UndoStack.Push(command);
+        RedoStack.Clear();
+        //AddMarker(mp);
         DrawLines();
     }
 
     public void OnAcceptLayer()
     {
+        FlushUndo();
         if (curNum == bank.layers.Count)
             AddLayerToBank();
         else
@@ -143,20 +189,12 @@ public class LayerContainerUI : DrawingUI
             j = j - 1;
         }
     }
-
-    //public void RemoveLayer()
-    //{
-    //    if(curNum > 0 && curNum < bank.layers.Count)
-    //    {
-    //        bank.layers.RemoveAt(curNum);
-
-    //        for (int i = curNum)
-    //        {
-    //            buttonToIndex[cu]
-    //        }
-    //        curNum = bank.layers.Count;
-    //    }
-    //}
+    
+    private void FlushUndo()
+    {
+        UndoStack.Clear();
+        RedoStack.Clear();
+    }
 
     private void AddLayerToBank()
     {
@@ -203,12 +241,35 @@ public class LayerContainerUI : DrawingUI
         curNum = buttonToIndex[sender];
         DropUI();
         DrawPreviousLayers(curNum);
+        FlushUndo();
         for (int i = 0; i < bank.layers[curNum].Count; i++)
             AddMarker(bank.layers[curNum][i]);
         var posList = new List<Vector3>();
         foreach (var i in markers)
             posList.Add(i.transform.position);
         DrawLines();
+    }
+
+    public void UndoButtonClick()
+    {
+        if(UndoStack.Count > 0)
+        {
+            var command = UndoStack.Pop();
+            command.Undo(this);
+            RedoStack.Push(command);
+        }
+    }
+
+    public void RedoButtonClick()
+    {
+        if (RedoStack.Count > 0)
+        {
+            var command = RedoStack.Pop();
+            command.Do(this);
+            UndoStack.Push(command);
+            SortClockwise(markers);
+            DrawLines();
+        }
     }
 
 }

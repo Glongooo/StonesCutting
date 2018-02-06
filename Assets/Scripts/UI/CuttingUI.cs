@@ -1,10 +1,12 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 
 public class CuttingUI : DrawingUI
 {
+  
     private bool VEquals(Vector3 v1, Vector3 v2)
     {
         return Mathf.Round(v1.x) == Mathf.Round(v2.x) && Mathf.Round(v1.y) == Mathf.Round(v2.y) && Mathf.Round(v1.z) == Mathf.Round(v2.z);
