@@ -335,6 +335,11 @@ public class LayerBank : MonoBehaviour
         cuttingUi.gameObject.SetActive(false);
     }
 
+    public void AddNewSphere(List<int> triangle, Vector3 spawnPos)
+    {
+
+    }
+
     /// <summary>
     /// z1 > z2
     /// </summary>

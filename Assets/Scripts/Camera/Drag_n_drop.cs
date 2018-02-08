@@ -18,6 +18,25 @@ public class Drag_n_drop : MonoBehaviour
 
     void Update()
     {
+        //if (Input.GetKeyDown(KeyCode.LeftControl) && Input.GetMouseButtonDown(1))
+        //{
+        //    RaycastHit hitInfo;
+        //    var go = target = ReturnClickedObject(out hitInfo);
+        //    var meshCollider = hitInfo.collider as MeshCollider;
+        //    if (meshCollider != null)
+        //    {
+        //        var layerBank = FindObjectOfType<LayerBank>();
+        //        if(layerBank != null)
+        //        {
+        //            List<int> triangle = new List<int>();
+        //            triangle.Add(hitInfo.triangleIndex * 3);
+        //            triangle.Add(hitInfo.triangleIndex * 3 + 1);
+        //            triangle.Add(hitInfo.triangleIndex * 3 + 2);
+        //            layerBank.AddNewSphere(triangle, hitInfo.point);
+        //        }
+        //    }
+        //}
+
         if (Input.GetMouseButtonDown(1))
         {
             RaycastHit hitInfo;
