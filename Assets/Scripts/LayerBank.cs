@@ -65,7 +65,7 @@ public class LayerBank : MonoBehaviour
         DropMesh();
         layersHeight[index] = height;
     }
-    
+
     public void Update()
     {
         if (state == LayerBankState.drawSlices)
@@ -105,9 +105,9 @@ public class LayerBank : MonoBehaviour
 
     public void BuildMesh()
     {
-        var storableMesh = MeshBuilder.BuildMeshFromLayers(layers);        
+        var storableMesh = MeshBuilder.BuildMeshFromLayers(layers);
         var verts = storableMesh.vertices;
-        
+
         meshFilter.mesh.SetVertices(storableMesh.vertices);
         meshFilter.mesh.SetTriangles(storableMesh.triangles, 0);
         meshFilter.mesh.RecalculateNormals();
@@ -337,7 +337,25 @@ public class LayerBank : MonoBehaviour
 
     public void AddNewSphere(List<int> triangle, Vector3 spawnPos)
     {
+        var verts = new List<Vector3>(meshFilter.mesh.vertices);
+        var triangles = new List<int>(meshFilter.mesh.triangles);
+        verts.Add(spawnPos);
+        triangles.Add(triangles[triangle[1]]);
+        triangles.Add(triangles[triangle[0]]);
+        triangles.Add(verts.Count - 1);
+        triangles.Add(triangles[triangle[2]]);
+        triangles.Add(triangles[triangle[1]]);
+        triangles.Add(verts.Count - 1);
+        triangles.Add(triangles[triangle[2]]);
+        triangles.Add(triangles[triangle[0]]);
+        triangles.Add(verts.Count - 1);
 
+        foreach (var i in triangle)
+            triangles.RemoveAt(i+1);
+
+        meshFilter.mesh.SetVertices(verts);
+        meshFilter.mesh.SetTriangles(triangles, 0);
+        meshFilter.mesh.RecalculateNormals();
     }
 
     /// <summary>
