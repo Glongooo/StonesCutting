@@ -3,6 +3,7 @@ using UnityEngine.UI;
 using System.Collections.Generic;
 using System;
 using System.Collections;
+using Helpers;
 
 public enum LayerBankState
 {
@@ -111,6 +112,8 @@ public class LayerBank : MonoBehaviour
         meshFilter.mesh.SetVertices(storableMesh.vertices);
         meshFilter.mesh.SetTriangles(storableMesh.triangles, 0);
         meshFilter.mesh.RecalculateNormals();
+        MeshHelper.TurnOutNormals(meshFilter.mesh);
+
 
         meshFilter.GetComponent<MeshCollider>().sharedMesh = meshFilter.mesh;
 
@@ -339,7 +342,11 @@ public class LayerBank : MonoBehaviour
     {
         var verts = new List<Vector3>(meshFilter.mesh.vertices);
         var triangles = new List<int>(meshFilter.mesh.triangles);
+
+        var center = LayerHelper.CalcCenterPoint(meshFilter.mesh.vertices);
+        
         verts.Add(spawnPos);
+
         triangles.Add(triangles[triangle[1]]);
         triangles.Add(triangles[triangle[0]]);
         triangles.Add(verts.Count - 1);
@@ -350,12 +357,24 @@ public class LayerBank : MonoBehaviour
         triangles.Add(triangles[triangle[0]]);
         triangles.Add(verts.Count - 1);
 
-        foreach (var i in triangle)
-            triangles.RemoveAt(i+1);
+        for (int i = triangles.Count - 1; i >= 0; i--)
+        {
+            for (int j = 0; j < triangle.Count; j++)
+                if (i == triangle[j])
+                    triangles.RemoveAt(i);
+        }
 
         meshFilter.mesh.SetVertices(verts);
         meshFilter.mesh.SetTriangles(triangles, 0);
         meshFilter.mesh.RecalculateNormals();
+        MeshHelper.TurnOutNormals(meshFilter.mesh);
+
+        meshFilter.GetComponent<MeshCollider>().sharedMesh = meshFilter.mesh;
+
+        var go = Instantiate(spherePrefab, dragSpheresParent);
+        go.OnPositionChange += OnSpherePositionChange;
+        go.transform.localPosition = spawnPos;
+        sphereToVertex.Add(go, new Dictionary<MeshFilter, int>() { { meshFilter, meshFilter.mesh.vertices.Length - 1 } });
     }
 
     /// <summary>

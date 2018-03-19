@@ -18,7 +18,7 @@ public class Drag_n_drop : MonoBehaviour
 
     void Update()
     {
-        if (/*Input.GetKeyDown(KeyCode.LeftControl) &&*/ Input.GetMouseButtonDown(2))
+        if (/*Input.GetKeyDown(KeyCode.LeftControl) &&*/ Input.GetMouseButtonDown(0))
         {
             RaycastHit hitInfo;
             var go = target = ReturnClickedObject(out hitInfo);
